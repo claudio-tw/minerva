@@ -10,6 +10,11 @@ $ poetry install
 $ poetry build
 ```
 
+## Run tests
+After installation you can run the uni tests by doing:
+```
+$ poetry run pytest
+```
 
 ## Run experiments
 
