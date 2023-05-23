@@ -27,8 +27,8 @@ test_size = n - train_size - val_size
 dimension_of_residual_block = 200
 lr = 1e-4
 num_res_layers = 3
-regularization_coef = .0
-max_epochs = 500
+regularization_coef = 1e5
+max_epochs = 200
 batch_size = 3000
 
 
@@ -39,14 +39,14 @@ y = (
     np.random.uniform(size=(1, dy, num_relevant)
                       ) @ np.expand_dims(x[:, expected], axis=2)
 )[:, :, 0]
-features_cols = [f'f{n}' for n in range(dx)]
-float_features = features_cols
+feature_cols = [f'f{n}' for n in range(dx)]
+float_features = feature_cols
 cat_features = []
 target_cols = [f'y{n}' for n in range(dy)]
 target_names = target_cols
 xdf = pd.DataFrame(
     x,
-    columns=features_cols
+    columns=feature_cols
 )
 ydf = pd.DataFrame(
     y,
@@ -60,7 +60,7 @@ test_data = data.iloc[train_size + val_size:]
 
 # Prepare the data for the training
 dn = normalize.DatasetNormalizer(
-    float_cols=features_cols + target_cols, categorical_cols=[])
+    float_cols=feature_cols + target_cols, categorical_cols=[])
 train_data = dn.fit_transform(train_data)
 val_data = dn.transform(val_data)
 test_data = dn.transform(test_data)
@@ -91,8 +91,7 @@ test_dataloader = MyIterableDataset(test_dataset, batch_size=batch_size)
 
 # Instantiate the model
 selector = select.Selector(
-    feature_cols=features_cols,
-    cat_feature_encoder=dn.cat_enc,
+    feature_cols=feature_cols,
     target_cols=target_names,
     dim1_max=dimension_of_residual_block,
     lr=lr,

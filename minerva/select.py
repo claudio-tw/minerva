@@ -67,24 +67,42 @@ class Selector(pl.LightningModule):
         self,
         feature_cols: List[str],
         target_cols: List[str],
-        cat_feature_encoder: Optional[OrdinalEncoder] = None,
         batch_size: int = 1024,
         lr: float = 1e-3,
         regularization_coef: float = 0.1,
         test_function: Optional[nn.Module] = None,
         dim1_max: int = 256,
         eps: float = 1e-5,
-        drift_coeff: int = 1,
+        drift_coef: int = 1,
         num_res_layers: int = 3,
     ):
         super().__init__()
-        self.train_batch_size = batch_size
+        self.batch_size = batch_size
         self.lr = lr
         self.regularization_coef = regularization_coef
         self.feature_names = np.array(feature_cols)
         self.n_features = len(self.feature_names)
         self.dim_y = len(target_cols)
 
+        self.dim_joint = self.n_features + self.dim_y
+
+        if test_function is None:
+            test_function = TestFunction(self.dim_joint,
+                                         dim1_max=dim1_max,
+                                         res_blocks=num_res_layers)
+
+        self.test_function = test_function
+        self.eps = eps
+        self.drift_coef = drift_coef
+
+        self.enable_projection()
+
+    def set_loaders(self, train_dataloader, val_dataloader, test_dataloader):
+        self.train_dataloader = lambda: train_dataloader
+        self.val_dataloader = lambda: val_dataloader
+        self.test_dataloader = lambda: test_dataloader
+
+    def enable_projection(self):
         # Network convergence is very sensitive to this value.
         # Too high, and it optimizes MI but features don't go sparse
         # Too low, and the opposite happens
@@ -94,35 +112,14 @@ class Selector(pl.LightningModule):
         self._proj = nn.Parameter(wgt_mult*torch.ones(self.n_features))
         self.init_norm = torch.linalg.norm(self._proj).detach().cpu().item()
 
-        self.dim_joint = self.n_features + self.dim_y
-
-        if test_function is None:
-            test_function = TestFunction(self.dim_joint,
-                                         dim1_max=dim1_max,
-                                         res_blocks=num_res_layers)
-
-        if True:  # isinstance(test_function, torch.jit.TracedModule):
-            self.test_function = test_function
-        else:
-            self.test_function = torch.jit.trace(
-                test_function, torch.rand(
-                    self.train_batch_size, self.dim_joint, dtype=torch.float32)
-            )
-        self.eps = eps
-        self.drift_coeff = drift_coeff
-        # TODO: this takes forever, is it trying to save some bulky objects it doesn't need to?
-        # self.save_hyperparameters()
-
-    def set_loaders(self, train_dataloader, val_dataloader, test_dataloader):
-        self.train_dataloader = lambda: train_dataloader
-        self.val_dataloader = lambda: val_dataloader
-        self.test_dataloader = lambda: test_dataloader
+    def disable_projection(self):
+        self._proj = nn.Parameter(torch.ones(
+            self.n_features, requires_grad=False), requires_grad=False)
 
     def normalized_proj(self):
         return self._proj / torch.linalg.norm(self._proj)
 
     def forward(self, x):
-        batch_size = len(x)
         p = self.normalized_proj()
         z = x * p.reshape(1, -1)
         return z
@@ -135,7 +132,7 @@ class Selector(pl.LightningModule):
         loss = (
             mi_loss
             + self.regularization_coef * regularization
-            + self.drift_coeff * (drift_prevention - self.init_norm) ** 2
+            + self.drift_coef * (drift_prevention - self.init_norm) ** 2
         )
         components = {"mi_loss": mi_loss, "loss": loss}
 
@@ -188,6 +185,20 @@ class Selector(pl.LightningModule):
         joint, prod = self._to_mine_joint_and_prod(z, y)
         mi_loss = - donsker_varadhan.v(joint, prod, self.test_function)
         return mi_loss
+
+    def train_mutual_information(self):
+        return self.mutual_information(self.train_dataloader())
+
+    def val_mutual_information(self):
+        return self.mutual_information(self.val_dataloader())
+
+    def test_mutual_information(self):
+        return self.mutual_information(self.test_dataloader())
+
+    def mutual_information(self, dataloader):
+        x = dataloader.ds.x
+        y = dataloader.ds.y
+        return - self.compute_mi_loss(self.forward(x), y)
 
     @staticmethod
     def _to_mine_joint_and_prod(
