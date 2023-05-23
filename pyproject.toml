@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "minerva"
+version = "0.1.0"
+description = "MINE-based feature selection"
+authors = ["claudio <claudio.bellani@transferwise.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9"
+torch = "2.0.0"
+pytorch-lightning = "2.0.1"
+numpy = ">1.19"
+pandas = ">=1.5.3"
+scipy = ">=1.0.0"
+tensorboard = ">=2.0.0"
+scikit-learn = "^1.2.2"
+
+[tool.poetry.group.test]  
+
+[tool.poetry.group.test.dependencies]
+pytest = "^6.0.0"
+pytest-mock = "*"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
