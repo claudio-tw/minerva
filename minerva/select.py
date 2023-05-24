@@ -102,12 +102,13 @@ class Selector(pl.LightningModule):
         self.val_dataloader = lambda: val_dataloader
         self.test_dataloader = lambda: test_dataloader
 
-    def enable_projection(self):
+    def enable_projection(self, wgt_mult=None):
         # Network convergence is very sensitive to this value.
         # Too high, and it optimizes MI but features don't go sparse
         # Too low, and the opposite happens
         # Best so far was 0.5/np.sqrt(len(self.feature_names))
-        wgt_mult = 1.0/np.sqrt(self.n_features)
+        if wgt_mult is None:
+            wgt_mult = 1.0/np.sqrt(self.n_features)
         # one coefficient per feature
         self._proj = nn.Parameter(wgt_mult*torch.ones(self.n_features))
         self.init_norm = torch.linalg.norm(self._proj).detach().cpu().item()

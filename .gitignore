@@ -3,4 +3,5 @@ tb_logs/
 */__pycache__/
 *.pyc
 minerva.yml
+notebooks/data/
 */.ipynb_checkpoints/
