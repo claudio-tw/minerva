@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from typing import Tuple
 import numpy as np
 import pandas as pd
 from scipy.stats import multivariate_normal
@@ -38,11 +37,10 @@ def run(
     n = number_of_samples
     train_size = int(.66 * n)
     val_size = int(.15 * n)
-    test_size = n - train_size - val_size
+    test_size = n - train_size - val_size  # NOQA
     feature_cols = ['x']
     float_features = feature_cols
-    target_cols = ['y']
-    target_names = target_cols
+    targets = ['y']
     cat_features = []
     exact_mi = - .5 * np.log(1. - corr * corr)
     data = sample(corr, number_of_samples)
@@ -53,32 +51,34 @@ def run(
         train_data,
         float_features,
         cat_features,
-        target_names
+        targets
     )
     val_dataset = MyDataset(
         val_data,
         float_features,
         cat_features,
-        target_names
+        targets
     )
     test_dataset = MyDataset(
         test_data,
         float_features,
         cat_features,
-        target_names
+        targets
     )
     train_dataloader = MyIterableDataset(train_dataset, batch_size=batch_size)
     val_dataloader = MyIterableDataset(val_dataset, batch_size=batch_size)
     test_dataloader = MyIterableDataset(test_dataset, batch_size=batch_size)
     selector = select.Selector(
-        feature_cols=feature_cols,
-        target_cols=target_names,
+        float_features=float_features,
+        cat_features=[],
+        targets=targets,
         dim1_max=dimension_of_residual_block,
         lr=lr,
         num_res_layers=num_res_layers,
         regularization_coef=0.,
         drift_coef=.0,
     )
+    selector.set_embedder([], 1)
     selector.disable_projection()
     selector.set_loaders(train_dataloader, val_dataloader, test_dataloader)
     logger = TensorBoardLogger("tb_logs", name='normalsmile')

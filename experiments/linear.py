@@ -59,7 +59,7 @@ feature_cols = [f'f{n}' for n in range(dx)]
 float_features = feature_cols
 cat_features = []
 target_cols = [f'y{n}' for n in range(dy)]
-target_names = target_cols
+targets = target_cols
 xdf = pd.DataFrame(
     x,
     columns=feature_cols
@@ -85,19 +85,19 @@ train_dataset = MyDataset(
     train_data,
     float_features,
     cat_features,
-    target_names
+    targets
 )
 val_dataset = MyDataset(
     val_data,
     float_features,
     cat_features,
-    target_names
+    targets
 )
 test_dataset = MyDataset(
     test_data,
     float_features,
     cat_features,
-    target_names
+    targets
 )
 
 train_dataloader = MyIterableDataset(train_dataset, batch_size=batch_size)
@@ -108,8 +108,9 @@ test_dataloader = MyIterableDataset(test_dataset, batch_size=batch_size)
 def run_this(reg_coef: float, load_path=None, wgt_mult=None):
 
     selector = Selector(
-        feature_cols=feature_cols,
-        target_cols=target_names,
+        cat_features=cat_features,
+        float_features=float_features,
+        targets=targets,
         dim1_max=dimension_of_residual_block,
         lr=lr,
         num_res_layers=num_res_layers,
@@ -119,9 +120,13 @@ def run_this(reg_coef: float, load_path=None, wgt_mult=None):
     if load_path is not None:
         selector.load_state_dict(torch.load(load_path))
 
+    # Set embedder of categorical features
+    selector.set_embedder([], 1)
+
     # Set dataloaders
     selector.set_loaders(train_dataloader, val_dataloader, test_dataloader)
 
+    # Enable projection
     selector.enable_projection(wgt_mult=wgt_mult)
 
     # Train the model

@@ -5,3 +5,4 @@ tb_logs/
 minerva.yml
 notebooks/data/
 */.ipynb_checkpoints/
+data/

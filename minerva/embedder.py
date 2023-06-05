@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Sequence
 
 import torch
 from torch import nn
@@ -6,27 +6,30 @@ import torch.nn.functional as F
 
 
 class Embedder(nn.Module):
-    def __init__(self, feat_sizes: Dict[str, int], emb_dim: int):
+    def __init__(self, n_cat_features: int,  feat_sizes: Sequence[int], emb_dim: int):
         super().__init__()
-        self.embs = nn.ModuleDict()
+        self.embs = []
         self.emb_dim = emb_dim
-        self.init_max = {}
-        for cat, num_features in feat_sizes.items():
-            self.embs[cat] = nn.Embedding(num_features+1, emb_dim)
-            self.init_max[cat] = float(
-                self.embs[cat].weight.detach().abs().max().item())
-
-        self.number_of_embeddings = max(1, len(self.embs))
-        self.output_shape = [None, self.number_of_embeddings, emb_dim]
+        self.init_max = []
+        for f, size in enumerate(feat_sizes):
+            self.embs.append(nn.Embedding(size+1, emb_dim))
+            self.init_max.append(float(
+                self.embs[f].weight.detach().abs().max().item()))
+        assert len(self.embs) == n_cat_features
+        assert len(self.init_max) == n_cat_features
+        self.n_cat_features = n_cat_features
 
     def forward(self, x):
+        n, d = x.size()
         out = torch.zeros(
-            (len(x), self.number_of_embeddings,  self.emb_dim),
+            (n, d,  self.emb_dim),
             device=x.device
         )
-        for i, (cat, emb) in enumerate(self.embs.items()):
+        for f in range(self.n_cat_features):
             # Add one to account for unknown values (=-1)
-            this_emb = emb.weight[x[:, i] + 1]
+            this_emb = self.embs[f](x[:, f].int() + 1)
             # Soft clamping
-            out[:, i, :] = F.tanh(0.2*this_emb/self.init_max[cat])
+            out[:, f, :] = F.tanh(0.2*this_emb/self.init_max[f])
+        for f in range(self.n_cat_features, d):
+            out[:, f, :] = x[:, f].reshape(-1, 1)
         return out
