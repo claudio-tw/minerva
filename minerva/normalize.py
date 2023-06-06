@@ -68,4 +68,5 @@ class DatasetNormalizer(Transformer):
         X[self.float_enc.cols] = self.float_enc.transform(
             X[self.float_enc.cols])
         X[self.cat_cols] = self.cat_enc.transform(X[self.cat_cols])
+        assert not X.isna().any().any()
         return X

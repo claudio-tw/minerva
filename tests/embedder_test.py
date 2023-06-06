@@ -22,7 +22,6 @@ class EmbedderTest(unittest.TestCase):
         n = 100
         n_cat_features = 2
         n_cont_features = 3
-        d = n_cat_features + n_cont_features
         feat_sizes = [5, 5]
         xcat = torch.randint(5, (n, n_cat_features))
         xcont = torch.randn((n, n_cont_features))
@@ -40,7 +39,6 @@ class EmbedderTest(unittest.TestCase):
         n_cat_features = 2
         n_cont_features = 3
         n_features = n_cat_features + n_cont_features
-        d = n_cat_features + n_cont_features
         feat_sizes = [5, 5]
 
         xcat = np.random.randint(low=0, high=5, size=(n, n_cat_features))

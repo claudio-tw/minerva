@@ -69,6 +69,8 @@ class Selector(pl.LightningModule):
         eps: float = 1e-5,
         drift_coef: int = 1,
         num_res_layers: int = 3,
+        cat_feat_sizes: Optional[Sequence[int]] = None,
+        emb_dim: int = 3,
     ):
         super().__init__()
         self.batch_size = batch_size
@@ -77,14 +79,18 @@ class Selector(pl.LightningModule):
         self.feature_names = np.array(cat_features + float_features)
         self.n_features = len(self.feature_names)
         self.n_cat_features = len(cat_features)
+        self.n_float_features = len(float_features)
         self.dim_y = len(targets)
+        self.emb_dim = emb_dim
 
-        self.dim_joint = self.n_features + self.dim_y
+        self.dim_joint = emb_dim * self.n_cat_features + \
+            self.n_float_features + self.dim_y
 
         if test_function is None:
             test_function = TestFunction(self.dim_joint,
                                          dim1_max=dim1_max,
                                          res_blocks=num_res_layers)
+        self.set_embedder(cat_feat_sizes)
 
         self.test_function = test_function
         self.eps = eps
@@ -92,9 +98,9 @@ class Selector(pl.LightningModule):
 
         self.enable_projection()
 
-    def set_embedder(self, feat_sizes: Sequence[int], emb_dim: int):
+    def set_embedder(self, cat_feat_sizes: Sequence[int]):
         self.embedder = Embedder(
-            self.n_cat_features, feat_sizes, emb_dim)
+            self.n_cat_features, cat_feat_sizes, self.emb_dim)
 
     def set_loaders(self, train_dataloader, val_dataloader, test_dataloader):
         self.train_dataloader = lambda: train_dataloader
