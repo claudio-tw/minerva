@@ -6,3 +6,10 @@ minerva.yml
 notebooks/data/
 */.ipynb_checkpoints/
 data/
+*.log
+*.aux
+*.toc
+*.bbl
+*.blg
+*.out
+*.pdf
