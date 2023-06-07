@@ -1,23 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-
+from typing import Sequence
 from pathlib import Path
 import pandas as pd
 import numpy as np
 
-import torch
-
-import pytorch_lightning as pl
-from pytorch_lightning.loggers import TensorBoardLogger
-
-
-from minerva.select import Selector
-from minerva.iterable_dataset import MyDataset, MyIterableDataset
-from minerva import normalize
-
-
-torch.set_float32_matmul_precision("medium")
+from minerva import feature_selection
 
 
 pth = Path('./data/categorical')
@@ -28,166 +17,132 @@ pth.mkdir(exist_ok=True, parents=True)
 n = 50000
 dx = 10
 num_relevant = 2
-feat_sizes = np.random.randint(low=7, high=10, size=(dx))
+cat_feat_sizes = np.random.randint(low=7, high=10, size=(dx))
 dy = 1
+feature_cols = [f'f{n}' for n in range(dx)]
+float_features = []  # no feature is float
+cat_features = feature_cols  # all features are categorical
+targets = [f'y{n}' for n in range(dy)]
 train_size = int(.66 * n)
 val_size = int(.15 * n)
 test_size = n - train_size - val_size
 
 
-# Set metaparameters
-
+# Metaparameters
 num_samples = n
-# The below makes things quite slow; 256 and 3 seem to perform almost as well, but way faster
 dimension_of_residual_block = 512
 num_res_layers = 4
 scaler = 2  # Scaler = 4 did the best so far, scaler=8 diverged
 batch_size = scaler*2048
 num_batches = num_samples // batch_size
 max_epochs = int(2000*scaler)  # to keep the number of batches constant
-
 lr = 1e-5  # scaling that as sqrt(scaler) didn't seem to work
 emb_dim = 3
+reg_coef = 1e5
 
+model_path = "./data/categorical/noreg.pth"
 
-# Synthesize the data
-xs = [
-    np.random.randint(low=0, high=size, size=(n, 1))
-    for size in feat_sizes
-]
-x = np.concatenate(xs, axis=1)
-expected = np.random.choice(dx, replace=False, size=num_relevant)
-y = np.zeros(shape=(n,), dtype=int)
-for f0, f1 in zip(expected[:-1], expected[1:]):
-    x0 = x[:, f0] / feat_sizes[f0]
-    x1 = x[:, f1] / feat_sizes[f1]
-    y += np.array(x0 > x1, dtype=int)
-
-feature_cols = [f'f{n}' for n in range(dx)]
-float_features = []
-cat_features = feature_cols
-targets = [f'y{n}' for n in range(dy)]
-targets = targets
-xdf = pd.DataFrame(
-    x,
-    columns=feature_cols
+# Pack hyperparameters
+selector_params = dict(
+    cat_features=cat_features,
+    float_features=float_features,
+    targets=targets,
+    dim1_max=dimension_of_residual_block,
+    lr=lr,
+    num_res_layers=num_res_layers,
+    eps=.001,
+    cat_feat_sizes=cat_feat_sizes,
+    emb_dim=emb_dim,
 )
-ydf = pd.DataFrame(
-    y,
-    columns=targets
-)
-data = pd.concat((xdf, ydf), axis=1)
-train_data = data.iloc[:train_size]
-val_data = data.iloc[train_size: train_size + val_size]
-test_data = data.iloc[train_size + val_size:]
-
-
-# Prepare the data for the training
-dn = normalize.DatasetNormalizer(
-    float_cols=[], categorical_cols=cat_features + targets)
-train_data = dn.fit_transform(train_data)
-val_data = dn.transform(val_data)
-test_data = dn.transform(test_data)
-
-train_dataset = MyDataset(
-    train_data,
-    float_features,
-    cat_features,
-    targets
-)
-val_dataset = MyDataset(
-    val_data,
-    float_features,
-    cat_features,
-    targets
-)
-test_dataset = MyDataset(
-    test_data,
-    float_features,
-    cat_features,
-    targets
+logger_params = dict(
+    name="categorical"
 )
 
-train_dataloader = MyIterableDataset(train_dataset, batch_size=batch_size)
-val_dataloader = MyIterableDataset(val_dataset, batch_size=batch_size)
-test_dataloader = MyIterableDataset(test_dataset, batch_size=batch_size)
+
+def synthesize_data(
+    n: int,
+    dx: int,
+    num_relevant: int,
+    feat_sizes: Sequence[int],
+    dy: int,
+    train_size: int,
+    val_size: int,
+    test_size: int,
+):
+    xs = [
+        np.random.randint(low=0, high=size, size=(n, 1))
+        for size in feat_sizes
+    ]
+    x = np.concatenate(xs, axis=1)
+    expected = np.random.choice(dx, replace=False, size=num_relevant)
+    y = np.zeros(shape=(n,), dtype=int)
+    for f0, f1 in zip(expected[:-1], expected[1:]):
+        x0 = x[:, f0] / feat_sizes[f0]
+        x1 = x[:, f1] / feat_sizes[f1]
+        y += np.array(x0 > x1, dtype=int)
+
+    feature_cols = [f'f{n}' for n in range(dx)]
+    targets = [f'y{n}' for n in range(dy)]
+    xdf = pd.DataFrame(
+        x,
+        columns=feature_cols
+    )
+    ydf = pd.DataFrame(
+        y,
+        columns=targets
+    )
+    data = pd.concat((xdf, ydf), axis=1)
+    train_data = data.iloc[:train_size]
+    val_data = data.iloc[train_size: train_size + val_size]
+    test_data = data.iloc[train_size + val_size:]
+
+    return expected, train_data, val_data, test_data
 
 
-def run_this(reg_coef: float, load_path=None, wgt_mult=None):
+def main():
 
-    selector = Selector(
-        cat_features=cat_features,
+    # Synthesize the data
+    expected_features, train_data, val_data, test_data = synthesize_data(
+        n=n,
+        dx=dx,
+        num_relevant=num_relevant,
+        feat_sizes=cat_feat_sizes,
+        dy=dy,
+        train_size=train_size,
+        val_size=val_size,
+        test_size=test_size,
+    )
+
+    # Run feature selection
+    selected_features, selector = feature_selection.run(
+        train_data=train_data,
+        val_data=val_data,
+        test_data=test_data,
         float_features=float_features,
+        categorical_features=cat_features,
         targets=targets,
-        dim1_max=dimension_of_residual_block,
-        lr=lr,
-        num_res_layers=num_res_layers,
-        regularization_coef=reg_coef,
-        eps=.001,
-        cat_feat_sizes=feat_sizes,
-        emb_dim=emb_dim,
-    )
-    if load_path is not None:
-        selector.load_state_dict(torch.load(load_path))
-
-    # Set dataloaders
-    selector.set_loaders(train_dataloader, val_dataloader, test_dataloader)
-
-    selector.enable_projection(wgt_mult=wgt_mult)
-
-    # Train the model
-    logger = TensorBoardLogger("tb_logs", name="categorical")
-    trainer = pl.Trainer(
-        gradient_clip_val=0.5,
-        accelerator="auto",
-        log_every_n_steps=50,
+        selector_params=selector_params,
+        logger_params=logger_params,
+        reg_coef=reg_coef,
+        projection_init=.25,
+        batch_size=batch_size,
         max_epochs=max_epochs,
-        logger=logger,
+        model_path=model_path,
     )
 
-    trainer.fit(
-        selector,
-        train_dataloaders=train_dataloader,
-        val_dataloaders=val_dataloader
-    )
+    # print results
+    print(
+        f'Normalised coefficients of the projection matrix:\n{selector.normalized_proj()}\n')
+    print(f'Selected features:\n{selector.selected_feature_names()}\n')
+    print(f'Expected features:\n{expected_features}\n')
 
-    final_test_loss = trainer.test(selector)
-    out = final_test_loss[0]
-    out["selected_features"] = selector.selected_feature_names()
-    return out, selector
-
-
-noreg_path = "./data/categorical/noreg_small.pth"
-
-
-# Train a long run without reg, to get the MI network right
-out, selector = run_this(reg_coef=0.0, wgt_mult=None)
-torch.save(selector.state_dict(), noreg_path)
+    print(
+        f'Mutual information on train dataset: {float(selector.train_mutual_information())}')
+    print(
+        f'Mutual information on val dataset: {float(selector.val_mutual_information())}')
+    print(
+        f'Mutual information on test dataset: {float(selector.test_mutual_information())}')
 
 
-# now add reg starting from that snapshot
-# Regularization level appears to have almost no effect as long as it's > 100
-reg_coefs = [1e5]
-results = []
-for reg_coef in reg_coefs:
-    out, selector = run_this(
-        reg_coef=reg_coef, load_path=noreg_path, wgt_mult=.25)
-    results.append(out)
-    results[-1]["reg_coef"] = reg_coef
-    df = pd.DataFrame(results)
-    df.to_csv("./data/categorical/results.csv")
-
-
-# print results
-print(
-    f'Normalised coefficients of the projection matrix:\n{selector.normalized_proj()}\n')
-print(f'Selected features:\n{selector.selected_feature_names()}\n')
-print(f'Expected features:\n{expected}\n')
-
-
-print(
-    f'Mutual information on train dataset: {float(selector.train_mutual_information())}')
-print(
-    f'Mutual information on val dataset: {float(selector.val_mutual_information())}')
-print(
-    f'Mutual information on test dataset: {float(selector.test_mutual_information())}')
+if __name__ == '__main__':
+    main()

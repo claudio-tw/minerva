@@ -6,14 +6,20 @@ import torch.nn.functional as F
 
 
 class Embedder(nn.Module):
-    def __init__(self, n_cat_features: int,  feat_sizes: Optional[Sequence[int]], emb_dim: int):
+    def __init__(self,
+                 n_cat_features: int,
+                 feat_sizes: Optional[Sequence[int]],
+                 emb_dim: int
+                 ):
         super().__init__()
 
         self.embs = nn.ModuleDict()
         self.emb_dim = emb_dim
         self.init_max = []
         if feat_sizes is None:
-            assert n_cat_features == 0, 'You need to specify thesizes of each categorical features'
+            assert n_cat_features == 0, ('You need to specify '
+                                         'the sizes of each '
+                                         'categorical features')
             feat_sizes = []
         assert len(feat_sizes) == n_cat_features
         for f, size in enumerate(feat_sizes):
