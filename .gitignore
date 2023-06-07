@@ -6,3 +6,5 @@ minerva.yml
 notebooks/data/
 */.ipynb_checkpoints/
 data/
+experiments/experiment_1/__pycache__/
+experiments/experiment_1/.ipynb_checkpoints
