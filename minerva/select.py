@@ -1,17 +1,10 @@
-from typing import Optional, List, Tuple
-from dataclasses import dataclass
-import math
+from typing import Optional, List, Tuple, Sequence
 
-import itertools
-import datetime
-
-from sklearn.preprocessing import OrdinalEncoder
 import numpy as np
 import pytorch_lightning as pl
 import torch
 from torch import nn, Tensor
 import torch.nn.functional as F
-from pathlib import Path
 
 
 from .embedder import Embedder
@@ -65,8 +58,9 @@ class TestFunction(nn.Sequential):
 class Selector(pl.LightningModule):
     def __init__(
         self,
-        feature_cols: List[str],
-        target_cols: List[str],
+        cat_features: List[str],
+        float_features: List[str],
+        targets: List[str],
         batch_size: int = 1024,
         lr: float = 1e-3,
         regularization_coef: float = 0.1,
@@ -75,27 +69,38 @@ class Selector(pl.LightningModule):
         eps: float = 1e-5,
         drift_coef: int = 1,
         num_res_layers: int = 3,
+        cat_feat_sizes: Optional[Sequence[int]] = None,
+        emb_dim: int = 3,
     ):
         super().__init__()
         self.batch_size = batch_size
         self.lr = lr
         self.regularization_coef = regularization_coef
-        self.feature_names = np.array(feature_cols)
+        self.feature_names = np.array(cat_features + float_features)
         self.n_features = len(self.feature_names)
-        self.dim_y = len(target_cols)
+        self.n_cat_features = len(cat_features)
+        self.n_float_features = len(float_features)
+        self.dim_y = len(targets)
+        self.emb_dim = emb_dim
 
-        self.dim_joint = self.n_features + self.dim_y
+        self.dim_joint = emb_dim * self.n_cat_features + \
+            self.n_float_features + self.dim_y
 
         if test_function is None:
             test_function = TestFunction(self.dim_joint,
                                          dim1_max=dim1_max,
                                          res_blocks=num_res_layers)
+        self.set_embedder(cat_feat_sizes)
 
         self.test_function = test_function
         self.eps = eps
         self.drift_coef = drift_coef
 
         self.enable_projection()
+
+    def set_embedder(self, cat_feat_sizes: Sequence[int]):
+        self.embedder = Embedder(
+            self.n_cat_features, cat_feat_sizes, self.emb_dim)
 
     def set_loaders(self, train_dataloader, val_dataloader, test_dataloader):
         self.train_dataloader = lambda: train_dataloader
@@ -121,8 +126,14 @@ class Selector(pl.LightningModule):
         return self._proj / torch.linalg.norm(self._proj)
 
     def forward(self, x):
+        batch_size = x.size(0)
         p = self.normalized_proj()
-        z = x * p.reshape(1, -1)
+        z_ = self.embedder(x) * p.reshape(1, -1, 1)
+        z = torch.cat([
+            z_[:, :self.n_cat_features, :].reshape(batch_size, -1),
+            z_[:, self.n_cat_features:, 0]
+        ], dim=1
+        )
         return z
 
     def loss_fn(self, z, y):

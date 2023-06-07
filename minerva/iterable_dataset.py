@@ -1,8 +1,6 @@
 from __future__ import annotations
 from typing import List, Sequence, Tuple, Union
-import datetime
 
-import numpy as np
 import pandas as pd
 import torch
 from torch import Tensor
@@ -30,36 +28,25 @@ class MyDataset(Dataset):
                  df: pd.DataFrame,
                  float_features: List[str],
                  cat_features: List[str],
-                 target_names: Union[str, Sequence[str]],
+                 targets: Union[str, Sequence[str]],
                  device: str = 'cpu',
                  ):
         self.device = device
         self.float_features = list(float_features)
         self.cat_features = cat_features
-        if isinstance(target_names, str):
-            self.target_names = [target_names]
+        if isinstance(targets, str):
+            self.targets = [targets]
         else:
-            self.target_names = list(target_names)
+            self.targets = list(targets)
         self.number_of_samples = len(df)
 
-        # This version: Assume float features only
-#         self.xf = torch.from_numpy(
-#             df[self.float_features].values
-#         ).to(device=self.device,
-#              dtype=torch.float32
-#              )
-#         self.xc = torch.from_numpy(
-#             df[self.cat_features].values
-#         ).to(device=self.device,
-#              dtype=torch.long
-#              )
         self.x = torch.from_numpy(
-            df[self.float_features + self.cat_features].values
+            df[self.cat_features + self.float_features].values
         ).to(device=self.device,
              dtype=torch.float32
              )
         self.y = torch.from_numpy(
-            df[self.target_names].values
+            df[self.targets].values
         ).to(device=self.device,
              dtype=torch.float32
              )

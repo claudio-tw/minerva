@@ -20,7 +20,7 @@ from minerva import normalize
 torch.set_float32_matmul_precision("medium")
 
 
-pth = Path('./data/linear')
+pth = Path('./data/categorical')
 pth.mkdir(exist_ok=True, parents=True)
 
 
@@ -28,6 +28,7 @@ pth.mkdir(exist_ok=True, parents=True)
 n = 50000
 dx = 10
 num_relevant = 2
+feat_sizes = np.random.randint(low=7, high=10, size=(dx))
 dy = 1
 train_size = int(.66 * n)
 val_size = int(.15 * n)
@@ -46,27 +47,34 @@ num_batches = num_samples // batch_size
 max_epochs = int(2000*scaler)  # to keep the number of batches constant
 
 lr = 1e-5  # scaling that as sqrt(scaler) didn't seem to work
+emb_dim = 3
 
 
 # Synthesize the data
-x = np.random.uniform(size=(n, dx))
+xs = [
+    np.random.randint(low=0, high=size, size=(n, 1))
+    for size in feat_sizes
+]
+x = np.concatenate(xs, axis=1)
 expected = np.random.choice(dx, replace=False, size=num_relevant)
-y = (
-    np.random.uniform(size=(1, dy, num_relevant)
-                      ) @ np.expand_dims(x[:, expected], axis=2)
-)[:, :, 0]
+y = np.zeros(shape=(n,), dtype=int)
+for f0, f1 in zip(expected[:-1], expected[1:]):
+    x0 = x[:, f0] / feat_sizes[f0]
+    x1 = x[:, f1] / feat_sizes[f1]
+    y += np.array(x0 > x1, dtype=int)
+
 feature_cols = [f'f{n}' for n in range(dx)]
-float_features = feature_cols
-cat_features = []
-target_cols = [f'y{n}' for n in range(dy)]
-targets = target_cols
+float_features = []
+cat_features = feature_cols
+targets = [f'y{n}' for n in range(dy)]
+targets = targets
 xdf = pd.DataFrame(
     x,
     columns=feature_cols
 )
 ydf = pd.DataFrame(
     y,
-    columns=target_cols
+    columns=targets
 )
 data = pd.concat((xdf, ydf), axis=1)
 train_data = data.iloc[:train_size]
@@ -76,7 +84,7 @@ test_data = data.iloc[train_size + val_size:]
 
 # Prepare the data for the training
 dn = normalize.DatasetNormalizer(
-    float_cols=feature_cols + target_cols, categorical_cols=[])
+    float_cols=[], categorical_cols=cat_features + targets)
 train_data = dn.fit_transform(train_data)
 val_data = dn.transform(val_data)
 test_data = dn.transform(test_data)
@@ -115,22 +123,20 @@ def run_this(reg_coef: float, load_path=None, wgt_mult=None):
         lr=lr,
         num_res_layers=num_res_layers,
         regularization_coef=reg_coef,
-        eps=.001
+        eps=.001,
+        cat_feat_sizes=feat_sizes,
+        emb_dim=emb_dim,
     )
     if load_path is not None:
         selector.load_state_dict(torch.load(load_path))
 
-    # Set embedder of categorical features
-    selector.set_embedder([], 1)
-
     # Set dataloaders
     selector.set_loaders(train_dataloader, val_dataloader, test_dataloader)
 
-    # Enable projection
     selector.enable_projection(wgt_mult=wgt_mult)
 
     # Train the model
-    logger = TensorBoardLogger("tb_logs", name="linear")
+    logger = TensorBoardLogger("tb_logs", name="categorical")
     trainer = pl.Trainer(
         gradient_clip_val=0.5,
         accelerator="auto",
@@ -151,7 +157,7 @@ def run_this(reg_coef: float, load_path=None, wgt_mult=None):
     return out, selector
 
 
-noreg_path = "./data/linear/noreg_small.pth"
+noreg_path = "./data/categorical/noreg_small.pth"
 
 
 # Train a long run without reg, to get the MI network right
@@ -169,7 +175,7 @@ for reg_coef in reg_coefs:
     results.append(out)
     results[-1]["reg_coef"] = reg_coef
     df = pd.DataFrame(results)
-    df.to_csv("./data/linear/results.csv")
+    df.to_csv("./data/categorical/results.csv")
 
 
 # print results
