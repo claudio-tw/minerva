@@ -1,0 +1,123 @@
+\section{Feature selection method}
+In this section,
+we describe
+our method of feature selection.
+
+Given $n$ samples
+\begin{equation*}
+	(x_1, y_1), 
+	\dots,
+	(x_n, y_n), 
+\end{equation*}
+from the joint distribution $\Prob_{X, Y}$, 
+a permutation $\sigma \in S_n$,
+a real valued function $f: \spaceX \times \spaceY \rightarrow \R$,
+and
+a $d$-dimensional vector $\projection \in \Rd$,
+we write
+\begin{equation}
+	\begin{split}
+		\jointeval[f, \projection] &= \frac{1}{n} \sum_{i=1}^{n} f(\projection \hadamard x_i, y_i),
+		\\
+		\prodeval[f, \projection] &= \frac{1}{n} \sum_{i=1}^{n} \exp\left(f(\projection \hadamard x_{\sigma(i)}, y_i)\right),
+	\end{split}
+\end{equation}
+where
+$\projection \hadamard x_i$ 
+is the Hadamard product of 
+$\projection$ and $x_i$. 
+We use 
+$\jointeval[f, \projection]$ 
+to approximate 
+$\Expectation_{\Prob_{XY}}[f(\projection \hadamard X, Y)]$,
+and we use
+$\prodeval[f, \projection]$ 
+to approximate 
+$\Expectation_{\Prob_{X} \otimes \Prob_{Y}}[\exp\left(f(\projection \hadamard X, Y)\right)]$,
+
+Let 
+$f_\theta$, $\theta \in \Theta$
+be a famility of measurable functions
+\begin{equation*}
+	f_\theta: \spaceX \times \spaceY \rightarrow \R
+\end{equation*}
+parametrised by the parameter $\theta \in \Theta$ of the neural network.
+Let 
+$\projection \in \Rd$
+be a $d$-dimensional vector. 
+We define
+\begin{equation}
+	\donskervaradhanloss(\theta, \projection) = - \jointeval[f_\theta, \projection] + \log \left(\prodeval[f_\theta, \projection]\right)
+\end{equation}
+and, 
+for 
+non-negative real coefficients $c_1$, $c_2$, $a$
+we define
+\begin{equation}
+	\lossfun(\theta, p, c_1, c_2, a)
+ \,\,
+	=  
+ \,\,
+	\donskervaradhanloss(\theta, \projection)
+		 + 
+		c_1 \lonenorm[\frac{\projection}{\ltwonorm[\projection]}]
+		 + 
+		c_2 \left( \ltwonorm[\projection] - a \right)\squared,
+\end{equation}
+where 
+$\lonenorm$ denotes $\Lone$-norm 
+and 
+$\ltwonorm$ denotes $\Ltwo$-norm.
+
+Our feature selection method
+consists in
+finding a minimiser 
+$\hat{\theta}$ of 
+\begin{equation*}
+\theta \longmapsto \donskervaradhanloss(\theta, \ones),
+\end{equation*}
+where $\ones = (1, \dots, 1) \in \Rd$,
+and then using this $\hat{\theta}$
+as the initialisation of the gradient descent 
+for the minimisation of 
+\begin{equation*}
+	\theta, \projection \longmapsto \lossfun\left(\theta, \projection, c_1, c_2, \sqrt{d}\right).
+\end{equation*}
+After the gradient descent has converged,
+we select the features that correspond to non-null entries of $\projection$.
+More precisely, our method is described in Algorithm \ref{algo.minerva}.
+
+\begin{algorithm}
+	\caption{MINE-based feature selection}
+	\label{algo.minerva}
+	\begin{algorithmic}[1]
+		\REQUIRE
+		random variables
+		$X\in \spaceX$,
+		$Y\in \spaceY$,
+		hyperparameters
+		$r>0$
+		$c_1\geq 0$, $c_2\geq 0$.
+		\STATE $\theta \leftarrow$ initialise network parameters
+		\REPEAT
+		\STATE Draw $n$ samples $(x_1, y_1), \dots, (x_n, y_n)$ from the joint distribution $\Prob_{XY}$
+		\STATE Sample shuffling permutation $\sigma$ from $S_n$
+		\STATE Update $\theta \leftarrow \theta - r\gradient_{\theta}\donskervaradhanloss(\theta, \ones)$%, where $\ones = (1, \dots, 1)$.
+		\UNTIL{ convergence}
+		\STATE Initialise $\varphi \leftarrow \theta$, $\projection \leftarrow \ones$.
+		\REPEAT
+		\STATE Draw $n$ samples $(x_1, y_1), \dots, (x_n, y_n)$ from the joint distribution $\Prob_{XY}$
+		\STATE Sample shuffling permutation $\sigma$ from $S_n$
+		\STATE Update $\varphi \leftarrow \varphi - r \gradient_{\varphi}\lossfun(\varphi, \projection, c_1, c_2, \sqrt{d})$
+		\STATE Update $\projection \leftarrow \projection - r \gradient_{\projection}\lossfun(\varphi, \projection, c_1, c_2, \sqrt{d})$
+		\UNTIL{convergence}
+		\RETURN $\left\lbrace i: \abs{\projection_i} > 0\right\rbrace$
+
+	\end{algorithmic}
+
+\end{algorithm}
+
+
+
+
+
