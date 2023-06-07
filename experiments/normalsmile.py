@@ -77,8 +77,9 @@ def run(
         num_res_layers=num_res_layers,
         regularization_coef=0.,
         drift_coef=.0,
+        cat_feat_sizes=[],
+        emb_dim=1,
     )
-    selector.set_embedder([], 1)
     selector.disable_projection()
     selector.set_loaders(train_dataloader, val_dataloader, test_dataloader)
     logger = TensorBoardLogger("tb_logs", name='normalsmile')

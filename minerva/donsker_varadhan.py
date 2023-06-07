@@ -24,7 +24,8 @@ def v(
         f: TestFunction,
 ) -> Tensor:
     """
-    Computes the argument of the supremum in the Donsker-Varadhan representation
+    Computes the argument of the supremum
+    in the Donsker-Varadhan representation
     of the Kullback-Leibner divergence D(P||Q)):
     E_P[f] - log(E_Q[exp(f)]).
 

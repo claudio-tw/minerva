@@ -61,7 +61,6 @@ class Selector(pl.LightningModule):
         cat_features: List[str],
         float_features: List[str],
         targets: List[str],
-        batch_size: int = 1024,
         lr: float = 1e-3,
         regularization_coef: float = 0.1,
         test_function: Optional[nn.Module] = None,
@@ -73,7 +72,6 @@ class Selector(pl.LightningModule):
         emb_dim: int = 3,
     ):
         super().__init__()
-        self.batch_size = batch_size
         self.lr = lr
         self.regularization_coef = regularization_coef
         self.feature_names = np.array(cat_features + float_features)
