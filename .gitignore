@@ -8,3 +8,10 @@ notebooks/data/
 data/
 experiments/experiment_1/__pycache__/
 experiments/experiment_1/.ipynb_checkpoints
+*.log
+*.aux
+*.toc
+*.bbl
+*.blg
+*.out
+*.pdf
