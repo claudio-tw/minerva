@@ -1,7 +1,14 @@
 from typing import List, Optional, Union
+from enum import Enum
 import numpy as np
 import pandas as pd
 from sklearn.feature_selection import mutual_info_regression, mutual_info_classif
+import pyHSICLasso
+
+
+class FeatureType(Enum):
+    CATEGORICAL = 0
+    FLOAT = 1
 
 
 def _preprocess_datatypes(
@@ -31,11 +38,24 @@ def ksgmi(
     if isinstance(y, pd.Series) or (isinstance(y, pd.DataFrame) and y.shape[1] == 1):
         miy = np.squeeze(y.values)
     else:
-        miy = np.linalg.norm(y, axis=1)
+        miy = np.sum(y, axis=1)  # reduce to one-dimensional target
     compute_mi = mutual_info_classif if miy.dtype == int else mutual_info_regression
     mis = compute_mi(mix, miy, discrete_features=discrete_features)
     mis /= np.max(mis)
     isrelevant = mis > threshold
     relevant_features = np.arange(x.shape[1])[isrelevant]
-    print(f'ksg-mi preprocessing: {sum(isrelevant)} features are pre-selected')
+    print(
+        f'ksg-mi preprocessing: {sum(isrelevant)} features have been selected')
     return relevant_features, mis
+
+
+def pyhsiclasso(x, y, xfeattype,  yfeattype, n_features: int, batch_size=500):
+    lasso = pyHSICLasso.HSICLasso()
+    lasso.X_in = x.T
+    lasso.Y_in = y.T
+    discrete_x = xfeattype == FeatureType.CATEGORICAL
+    if yfeattype == FeatureType.CATEGORICAL:
+        lasso.classification(n_features, B=batch_size, discrete_x=discrete_x)
+    else:
+        lasso.regression(n_features, B=batch_size, discrete_x=discrete_x)
+    return lasso.A
