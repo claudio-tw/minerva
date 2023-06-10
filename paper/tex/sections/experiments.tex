@@ -1,3 +1,267 @@
 \section{Experiments}
 In this section,
 we present the results of our numerical experiments.
+Our experiments are based
+either 
+on real-world datasets
+or on synthetic data.
+
+With real-world datasets,
+we evaluate
+feature selection methods
+by looking at 
+how
+the out-of-sample accuracy of the prediction / classification
+improves with the reduced dimensionality of the selected features
+compared to the full datasets.
+
+With synthetic data, 
+out 
+of the $d$-features to select from,
+we know the subset 
+$t \subset \lbrace 1, \dots, d\rbrace$
+that the target depends on,
+and thus
+we can evaluate feature selection methods
+by reconciling their selection with $t$.
+More precisely,
+let 
+$s$ 
+be a subset of 
+$\lbrace1, \dots, d\rbrace$.
+We say that 
+the selection of the features 
+$s$ is exact if $s=t$,
+and it is non-exact otherwise. 
+If the selection is non-exact,
+either 
+$t \not \subset s$
+or
+$s \supsetneq t$.
+In the former case, 
+we say that the non-exact selection is of type I;
+in the latter case,
+we say that the non-exact selection is of type II. 
+Non-exact selections of type I 
+compromise the downstream prediction task 
+because 
+they subtract information relevant for the prediction.
+Non-exact selections of type II
+might not reduce the dimensionality of the problem,
+but they do not compromise downstream tasks. 
+
+
+\subsection{Experiment 1}
+Let
+$d$
+be a positive integer,
+and 
+let 
+$m$
+be  a positive integer.
+For
+$i = 1, \dots, d$
+let
+$X_i$
+be a random  positive integer
+smaller that or equal to $m$.
+The random variables
+$X_1, \dots, X_d$
+are assumed independent and identically distributed.
+Fix 
+two integers
+$ 1 \leq k_0 < k_1 \leq d$
+and 
+define
+\begin{equation}
+	\label{eq.exp1Y}
+	Y = \one\left\lbrace
+	X_{k_0} = X_{k_1}
+	\right
+	\rbrace
+	=
+	\begin{cases}
+		1 & \text{ if } X_{k_0} = X_{k_1}
+		\\
+		0 & \text{ otherwise}.
+	\end{cases}
+\end{equation}
+
+We consider the task of predicting $Y$ from the vector 
+$(X_1, \dots, X_d)$,
+and 
+we want to select 
+from this vector 
+the features that are relevant for the prediction.
+
+In this context,
+feature selection methods
+that rely on a metric $d(X_i, Y)$ of dependence between 
+each feature $X_i$ and the target $Y$ are bound to fail.
+This is explained in Lemma \ref{lemma.experiment1}:
+the pair-wise assessment of $(X_i, Y)$ 
+cannot possibly produce an exact selection
+because $Y$ is independent from every $X_i$. 
+It is only by considering the the ensemble of features $X_1, \dots, X_d$ 
+that we can produce an exact selection.
+
+We confirm that in our numerical experiments. 
+We test 
+our MINE-based feature selection method 
+against 
+two benchmarks.
+
+The first benchmark is 
+\weblink{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}{sklearn.feature\_selection.mutual\_info\_classif}.
+\footnote{
+See
+\weblink{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}.
+}
+This method estimates the mutual information 
+$I(X_i, Y)$ for all $i = 1, \dots, d$
+and 
+it selects those features $k$ such that 
+$I(X_k, Y) > \epsilon$
+for a given threhsold $\epsilon$. 
+The estimation of $I(X_i, Y)$ is based on the KSG estimator, 
+introduced in 
+\cite{KSG04est}.
+
+The second benchmark is
+HSIC Lasso,
+see 
+\cite{YJSXS14hig}.
+This method 
+selects features $i_1, \dots, i_k$
+that correspond to non-null entries of the 
+maximisers of 
+\begin{equation*}
+	\beta \mapsto 
+	\sum_{i=1}^{d} \beta_i d(X_i, Y)
+	-\half
+	\sum_{i,j = 1}^{d} \beta_i \beta_j d(X_i, X_j),
+\end{equation*}
+where $d$ is the Hilbert-Schmidt independence criterion 
+introduced in 
+\cite{GBSS05mea}.
+We use the implementation of HSIC Lasso
+given in
+\weblink{https://pypi.org/project/pyHSICLasso/}{pyHSICLasso}
+\footnote{
+See \weblink{https://pypi.org/project/pyHSICLasso/}{https://pypi.org/project/pyHSICLasso}.
+}
+
+Data and code for our experiments are available 
+at
+\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments}{minerva/experiments/experiment\_1}.
+\footnote{
+	See
+\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments}{https://github.com/claudio-tw/minerva/tree/trunk/experiments}.
+}
+More precisely, 
+the synthetic dataset tha we use is
+[...]
+and 
+the script used for training minerva is
+[...].
+The benchmark method of feature selection 
+were
+executed
+in the script
+[...]
+.
+Table
+\ref{tab.experiment1}
+summarises our findings. 
+As expected, 
+neither 
+\weblink{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}{sklearn.feature\_selection.mutual\_info\_classif}
+nor
+\weblink{https://pypi.org/project/pyHSICLasso/}{pyHSICLasso}
+were able to complete an exact selection. 
+Their selections are non-exact of type II. 
+Notice moreover that if we enforce 
+\weblink{https://pypi.org/project/pyHSICLasso/}{pyHSICLasso}
+to select two features only,
+the selection is non-exact of type I.
+Instead,
+Minerva
+was able to complete an exact selection.
+Tensorboard logs for the training are available at
+[...].
+
+
+\begin{table}
+	\centering
+{\rowcolors{2}{gray!20!white!50}{gray!10!white!40}
+	\begin{tabular}{l|l|l}
+		\textbf{method}
+		&
+		\textbf{selection}
+		&
+		\textbf{evaluation}
+		\\
+		\hline
+		mutual\_info\_classif
+		&
+		1, \dots, 30
+		&
+		non-exact type II
+		\\
+		pyHSICLasso
+		&
+		1, \dots, 30
+		&
+		non-exact type II
+		\\
+		minerva
+		&
+		3, 8
+		&
+		exact
+	\end{tabular}
+}
+\caption{Experiment 1 - Comparison of three different feature selection methods.}
+\label{tab.experiment1}
+\end{table}
+
+
+
+
+
+
+\begin{lemma}
+	\label{lemma.experiment1}
+	Let $m>2$ be a positive integer. 
+	Let
+	$X_1, \dots, X_d$
+	be independent identically distributed
+	with 
+	$\Prob(X_1 = n) = 1 / m$
+	for $n=1, \dots, m$. 
+	Let 
+	$k_0$ and $k_1$ 
+	be two distinct positive integers 
+	smaller than or equal to $d$,
+	and let $Y$
+	be as in equation \eqref{eq.exp1Y}.
+	Then,
+	for all $i=1, \dots, d$
+	\begin{equation}
+		\label{eq.exp1pairwisemi}
+		I(X_i, Y) = 0,
+	\end{equation}
+	namely $X_i$ and $Y$ are independent. 
+	Moreover,
+	\begin{equation}
+		\label{eq.exp1mi}
+		I((X_{k_0}, X_{k_1}), Y) 
+		=
+			\frac{m-1}{m} \log\left(\frac{m}{m-1}\right)
+			+
+			\frac{1}{m}\log m
+			.
+	\end{equation}
+\end{lemma}
+
+

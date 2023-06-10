@@ -7,7 +7,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 %% COLOR %%
-%\usepackage[table]{xcolor}
+\usepackage[table]{xcolor}
 %\usepackage[breakable]{tcolorbox}
 %% MARGINS %%
 \usepackage[margin=3.00cm]{geometry}
@@ -43,6 +43,7 @@
 \setlength{\headheight}{15pt}
 
 \newtheorem{thm}{Theorem}
+\newtheorem{lemma}[thm]{Lemma}
 \newtheorem{corol}[thm]{Corollary}
 \newtheorem{prop}[thm]{Proposition}
 \newtheorem{conjecture}[thm]{Conjecture}
