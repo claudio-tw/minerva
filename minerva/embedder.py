@@ -19,7 +19,7 @@ class Embedder(nn.Module):
         if feat_sizes is None:
             assert n_cat_features == 0, ('You need to specify '
                                          'the sizes of each '
-                                         'categorical features')
+                                         'categorical feature')
             feat_sizes = []
         assert len(feat_sizes) == n_cat_features
         for f, size in enumerate(feat_sizes):

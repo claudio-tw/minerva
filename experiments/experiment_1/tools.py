@@ -59,3 +59,14 @@ def pyhsiclasso(x, y, xfeattype,  yfeattype, n_features: int, batch_size=500):
     else:
         lasso.regression(n_features, B=batch_size, discrete_x=discrete_x)
     return lasso.A
+
+
+def onedimlabel(x):
+    assert x.ndim == 2
+    ns = np.amax(x, axis=0)
+    res = np.array(x[:, 0], copy=True)
+    m = 1
+    for i in range(1, x.shape[1]):
+        m *= max(1, ns[i-1])
+        res += (1+m) * x[:, i]
+    return res
