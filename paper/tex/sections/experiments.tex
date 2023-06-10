@@ -57,8 +57,8 @@ $d$
 be a positive integer,
 and 
 let 
-$m$
-be  a positive integer.
+$m > 2$
+be  a positive integer larger than $2$.
 For
 $i = 1, \dots, d$
 let
@@ -96,13 +96,14 @@ the features that are relevant for the prediction.
 
 In this context,
 feature selection methods
-that rely on a metric $d(X_i, Y)$ of dependence between 
+that rely on a metric $h(X_i, Y)$ of dependence between 
 each feature $X_i$ and the target $Y$ are bound to fail.
 This is explained in Lemma \ref{lemma.experiment1}:
 the pair-wise assessment of $(X_i, Y)$ 
 cannot possibly produce an exact selection
 because $Y$ is independent from every $X_i$. 
-It is only by considering the the ensemble of features $X_1, \dots, X_d$ 
+It is only by considering 
+the ensemble of features $X_1, \dots, X_d$ 
 that we can produce an exact selection.
 
 We confirm that in our numerical experiments. 
@@ -112,8 +113,7 @@ against
 two benchmarks.
 
 The first benchmark is 
-\weblink{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}{sklearn.feature\_selection.mutual\_info\_classif}.
-\footnote{
+\weblink{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}{sklearn.feature\_selection.mutual\_info\_classif}.\footnote{
 See
 \weblink{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}.
 }
@@ -137,39 +137,47 @@ that correspond to non-null entries of the
 maximisers of 
 \begin{equation*}
 	\beta \mapsto 
-	\sum_{i=1}^{d} \beta_i d(X_i, Y)
+	\sum_{i=1}^{d} \beta_i h(X_i, Y)
 	-\half
-	\sum_{i,j = 1}^{d} \beta_i \beta_j d(X_i, X_j),
+	\sum_{i,j = 1}^{d} \beta_i \beta_j h(X_i, X_j),
 \end{equation*}
-where $d$ is the Hilbert-Schmidt independence criterion 
+where $h$ is the Hilbert-Schmidt independence criterion 
 introduced in 
 \cite{GBSS05mea}.
 We use the implementation of HSIC Lasso
 given in
-\weblink{https://pypi.org/project/pyHSICLasso/}{pyHSICLasso}
-\footnote{
+\weblink{https://pypi.org/project/pyHSICLasso/}{pyHSICLasso}.\footnote{
 See \weblink{https://pypi.org/project/pyHSICLasso/}{https://pypi.org/project/pyHSICLasso}.
 }
 
 Data and code for our experiments are available 
 at
-\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments}{minerva/experiments/experiment\_1}.
-\footnote{
+\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments}{minerva/experiments/experiment\_1}.\footnote{
 	See
 \weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments}{https://github.com/claudio-tw/minerva/tree/trunk/experiments}.
 }
 More precisely, 
-the synthetic dataset tha we use is
-[...]
+the synthetic dataset that we use is
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/data/large.csv}{minerva/experiments/experiment\_1/data/large.csv},\footnote{
+See
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/data/large.csv}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/data/large.csv}.
+}
 and 
 the script used for training minerva is
-[...].
-The benchmark method of feature selection 
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/minervarunner.py}{minerva/experiments/experiment\_1/minervarunner.py}.\footnote{
+	See
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/minervarunner.py}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/minervarunner.py}.
+}
+The benchmark methods of feature selection 
 were
 executed
 in the script
-[...]
-.
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/benchmarks.py}{minerva/experimnets/experiment\_1/benchmarks.py}.\footnote{
+	See
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/benchmarks.py}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/benchmarks.py}.
+}
+
+
 Table
 \ref{tab.experiment1}
 summarises our findings. 
@@ -180,7 +188,7 @@ nor
 \weblink{https://pypi.org/project/pyHSICLasso/}{pyHSICLasso}
 were able to complete an exact selection. 
 Their selections are non-exact of type II. 
-Notice moreover that if we enforce 
+Notice moreover that if we force 
 \weblink{https://pypi.org/project/pyHSICLasso/}{pyHSICLasso}
 to select two features only,
 the selection is non-exact of type I.
@@ -188,7 +196,10 @@ Instead,
 Minerva
 was able to complete an exact selection.
 Tensorboard logs for the training are available at
-[...].
+\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments/experiment\_1/tb\_logs/experiment\_1}{minerva/experiments/experiment\_1/tb\_logs/}.\footnote{
+	See
+\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments/experiment\_1/tb\_logs/experiment\_1}{https://github.com/claudio-tw/minerva/tree/trunk/experiments/experiment\_1/tb\_logs/experiment\_1}.
+}
 
 
 \begin{table}

@@ -3,6 +3,30 @@ In this section,
 we describe
 our method of feature selection.
 
+Let 
+$\spaceX \subset \Rd$
+and 
+$\spaceY \subset \R^{e}$
+represent sample spaces.
+Let 
+$X$
+and 
+$Y$
+be random variables taking values in 
+$\spaceX$
+and 
+$\spaceY$
+respectively.
+We interpret $Y$ as 
+the target of a
+prediction / classification
+task,
+and
+we interpret $X$ as
+a vector of features to use in this
+prediction / classification
+task.
+
 Given $n$ samples
 \begin{equation*}
 	(x_1, y_1), 
@@ -96,6 +120,17 @@ $f_\theta$
 is represented in 
 Figure
 \ref{fig.networkarchitecture}.
+
+We implement our MINE-based feature selection in the 
+\weblink{https://pypi.org/}{pypi}-package 
+\weblink{https://github.com/claudio-tw/minerva}{minerva}.\footnote{
+	See
+	\weblink{https://github.com/claudio-tw/minerva}{https://github.com/claudio-tw/minerva}.
+}
+Its usage is demonstrated 
+with Jupyter notebooks
+at
+\weblink{https://github.com/claudio-tw/minerva/tree/trunk/notebooks}{https://github.com/claudio-tw/minerva/tree/trunk/notebooks}.
 
 \begin{algorithm}
 	\caption{MINE-based feature selection}
