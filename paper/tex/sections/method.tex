@@ -87,6 +87,16 @@ After the gradient descent has converged,
 we select the features that correspond to non-null entries of $\projection$.
 More precisely, our method is described in Algorithm \ref{algo.minerva}.
 
+The architecture 
+of 
+the neural network 
+used in 
+the parametrisation  of the test functions 
+$f_\theta$
+is represented in 
+Figure
+\ref{fig.networkarchitecture}.
+
 \begin{algorithm}
 	\caption{MINE-based feature selection}
 	\label{algo.minerva}
@@ -112,10 +122,14 @@ More precisely, our method is described in Algorithm \ref{algo.minerva}.
 		\STATE Update $\projection \leftarrow \projection - r \gradient_{\projection}\lossfun(\varphi, \projection, c_1, c_2, \sqrt{d})$
 		\UNTIL{convergence}
 		\RETURN $\left\lbrace i: \abs{\projection_i} > 0\right\rbrace$
-
 	\end{algorithmic}
-
 \end{algorithm}
+
+\begin{figure}
+	\caption{Neural network architecture}
+	\label{fig.networkarchitecture}
+	\includegraphics[width=.9\textwidth]{architecture.png}
+\end{figure}
 
 
 
