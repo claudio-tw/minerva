@@ -1,0 +1,213 @@
+\section{Proofs}
+
+\begin{proof}[Proof of Lemma \ref{lemma.experiment1}]
+	For ease of notation, 
+	take 
+	$k_0 = 1$, 
+	$k_1 = 2$. 
+	We only need to prove equation \eqref{eq.exp1pairwisemi}
+	for $i = k_0, k_1$. 
+	For integers $i$, $y$, 
+	let 
+	\begin{equation*}
+		a(y, i) = \one(y = i) 
+		= 
+		\begin{cases}
+			1 & \text{ if } y = i
+			\\
+			0 & \text{ otherwise}.
+		\end{cases}
+	\end{equation*}
+	For 
+	$x_1 = 1, \dots, m$
+	and
+	$y = 0, 1$
+	we have
+	\begin{equation*}
+		\Prob(Y = y \vert X_1 = x_1)
+		=
+		\begin{cases}
+			\Prob(X_2 \neq x_1) & \text { if } y = 0
+			\\
+			\Prob(X_2 = x_1) & \text { if } y = 1
+		\end{cases}
+		=
+		\frac{m-1}{m} a(y, 0)
+		+
+		\frac{1}{m} a(y, 1)
+	\end{equation*}
+	Therefore,
+	\begin{equation*}
+		\begin{split}
+			\Prob(Y = y) 
+			& =
+			\sum_{x_1 = 1}^{m}
+			\Prob(X_1 = x_1, Y = y)
+			\\
+			& = 
+			\sum_{x_1 = 1}^{m}
+			\Prob(Y = y \vert X_1 = x_1)
+			\Prob(X_1 = x_1)
+			\\
+			& = 
+			\frac{1}{m}
+			\sum_{x_1 = 1}^{m}
+			\left(
+			\frac{m-1}{m} a(y, 0)
+			+
+			\frac{1}{m} a(y, 1)
+			\right)
+			\\
+			& = 
+			\Prob(Y = y \vert X_1 = x_1)
+		\end{split}
+	\end{equation*}
+	where on the last line $x_1$ is any positive integer smaller than or equal to $m$. 
+	We conclude that
+	\begin{equation*}
+		\begin{split}
+		I(X_1, Y)
+		& = 
+		\sum_{x_1 = 1}^{m}
+		\sum_{y=0}^{1}
+		\Prob(X_1 = x_1, Y = y)
+		\log
+		\left(
+		\frac{
+		\Prob(X_1 = x_1, Y = y)
+		}
+		{
+			\Prob(X_1 = x_1)\Prob(Y=y)
+		}
+		\right)
+		\\
+		& = 
+		\sum_{x_1 = 1}^{m}
+		\sum_{y=0}^{1}
+		\Prob(X_1 = x_1, Y = y)
+		\log
+		\left(
+		\underbrace{
+		\frac{
+		\Prob(X_1 = x_1, Y = y)
+		}
+		{
+			\Prob(X_1 = x_1)
+			\Prob(Y = y \vert X_1 = x_1)
+		}
+		}_{ = 1}
+		\right)
+		\\
+		& = 
+		0.
+		\end{split}
+	\end{equation*}
+	The equality $I(X_2, Y) = 0$ is proved in the same way. 
+
+	Finally, we establish equation \eqref{eq.exp1mi}.
+	For integers $x_1, x_2$, 
+	let 
+	$b(x_1, x_2) = 1$ if $x_1 = x_2$,
+	and $b(x_1, x_2) = 0$ otherwise.
+	Then, 
+	for positive integers $x_1, x_2 \leq m$ and $y=0, 1$,
+	we can write
+	\begin{equation*}
+		\Prob(Y=y \vert X_1 = x_1, X_2 = x_2)
+		=
+		a(y, 0)( 1 - b(x_1, x_2)
+		+
+		a(y, 1) b(x_1, x_2),
+	\end{equation*}
+	and
+	\begin{equation*}
+		\begin{split}
+		\Prob(X_1 = x_1, X_2 = x_2, Y = y)
+			&=
+		\Prob(Y=y \vert X_1 = x_1, X_2 = x_2)
+		\Prob(X_1 = x_1, X_2 = x_2)
+		\\
+			&=
+		\frac{1}{m\squared}
+		\Big(
+		a(y, 0)( 1 - b(x_1, x_2)
+		+
+		a(y, 1) b(x_1, x_2)
+		\Big),
+		\end{split}
+	\end{equation*}
+	and
+	\begin{equation*}
+		\begin{split}
+			\Prob(X_1 = x_1, X_2 = x_2) \Prob(Y = y)
+			&=
+			\frac{1}{m\squared}
+			\left(
+			\frac{m-1}{m} a(y, 0)
+			+
+			\frac{1}{m} a(y, 1)
+			\right).
+		\end{split}
+	\end{equation*}
+	Let 
+	$c(x_1, x_2, y) = 
+			a(y, 0)( 1 - b(x_1, x_2)
+			+
+			a(y, 1) b(x_1, x_2)
+			$.
+	Plugging these in the definition of the mutual information between $(X_1, x_2)$ and $Y$,
+	we conclude
+	\begin{equation*}
+		\begin{split}
+			I((X_1, X_2), Y)
+			& =
+			\frac{1}{m\squared}
+			\sum_{x_1, x_2 = 1}^{m}
+			\sum_{y=0}^{1}
+			\left(
+			c(x_1, x_2, y)
+			\right)
+			\log
+			\left(
+			\frac
+			{
+			c(x_1, x_2, y)
+			}
+			{
+				\frac{m-1}{m} a(y, 0) + \frac{1}{m} a(y, 1)
+			}
+			\right)
+			\\
+			& = 
+			\frac{1}{m\squared}
+			\sum_{x_1, x_2 = 1}^{m}
+			\left(
+			(1 - b(x_1, x_2))
+			\log
+			\left(
+			\frac{m(1-b(x_1, x_2))}{m-1}
+			\right)
+			+
+			b(x_1, x_2)
+			\log
+			\left(
+			m b(x_1, x_2)
+			\right)
+			\right)
+			\\
+			& =
+			\frac{1}{m\squared}
+			\sum_{x_1 = 1}^{m}
+			\left(
+			(m-1)\log\left(\frac{m}{m-1}\right) + \log(m)
+			\right)
+			\\
+			& =
+			\frac{m-1}{m} \log\left(\frac{m}{m-1}\right)
+			+
+			\frac{1}{m}\log m
+			.
+		\end{split}
+	\end{equation*}
+
+\end{proof}
