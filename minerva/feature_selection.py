@@ -77,7 +77,7 @@ def train(
     # Set dataloaders
     selector.set_loaders(train_dataloader, val_dataloader, test_dataloader)
 
-    if (not disable_projection) and (load_path is not None):
+    if (not disable_projection) and (load_path is None):
         selector.enable_projection(wgt_mult=projection_init)
     if disable_projection:
         selector.disable_projection()
@@ -135,7 +135,7 @@ def run(
         val_dataloader=val_dataloader,
         test_dataloader=test_dataloader,
         reg_coef=.0,
-        projection_init=None,
+        projection_init=projection_init,
         disable_projection=False,
         max_epochs=max_epochs,
         load_path=None,
@@ -148,7 +148,7 @@ def run(
         val_dataloader=val_dataloader,
         test_dataloader=test_dataloader,
         reg_coef=reg_coef,
-        projection_init=.25,
+        projection_init=projection_init,
         disable_projection=False,
         max_epochs=max_epochs,
         load_path=model_path,
