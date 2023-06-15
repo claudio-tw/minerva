@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple, Sequence
+from typing import Optional, List, Tuple, Sequence, Dict, Union
 
 import numpy as np
 import pytorch_lightning as pl
@@ -61,6 +61,7 @@ class Selector(pl.LightningModule):
         cat_features: List[str],
         float_features: List[str],
         targets: List[str],
+        mi_threshold: Optional[float] = None,
         lr: float = 1e-3,
         regularization_coef: float = 0.1,
         test_function: Optional[nn.Module] = None,
@@ -72,6 +73,8 @@ class Selector(pl.LightningModule):
         emb_dim: int = 3,
     ):
         super().__init__()
+        self.mi_threshold = mi_threshold
+        self.optimal_weights = None
         self.lr = lr
         self.regularization_coef = regularization_coef
         self.feature_names = np.array(cat_features + float_features)
@@ -105,23 +108,53 @@ class Selector(pl.LightningModule):
         self.val_dataloader = lambda: val_dataloader
         self.test_dataloader = lambda: test_dataloader
 
-    def enable_projection(self, wgt_mult=None):
+    def enable_projection(self, weights: Optional[Union[float, np.ndarray, torch.Tensor]] = None):
         # Network convergence is very sensitive to this value.
         # Too high, and it optimizes MI but features don't go sparse
         # Too low, and the opposite happens
-        # Best so far was 0.5/np.sqrt(len(self.feature_names))
-        if wgt_mult is None:
-            wgt_mult = 1.0/np.sqrt(self.n_features)
+        if weights is None:
+            weights = (1.0/np.sqrt(self.n_features)) * \
+                torch.ones(self.n_features)
+        elif isinstance(weights, (float, int)):
+            weights = weights * torch.ones(self.n_features)
+        elif isinstance(weights, torch.Tensor):
+            pass
+        elif isinstance(weights, np.ndarray):
+            ws = np.array(weights, dtype=np.float32)
+            weights = torch.from_numpy(ws)
+            assert weights.dtype == torch.float32
+        else:
+            raise ValueError(weights)
+
         # one coefficient per feature
-        self._proj = nn.Parameter(wgt_mult*torch.ones(self.n_features))
+        assert len(weights) == self.n_features
+        self._proj = nn.Parameter(weights, requires_grad=True)
+
         self.init_norm = torch.linalg.norm(self._proj).detach().cpu().item()
 
     def disable_projection(self):
         self._proj = nn.Parameter(torch.ones(
             self.n_features, requires_grad=False), requires_grad=False)
+        self.init_norm = np.sqrt(self.n_features)
+
+    def set_projection_from_weights(self, weights: Dict[int, float], requires_grad: bool = True):
+        ws = [weights[f] for f in range(len(weights))]
+        self._proj = nn.Parameter(torch.Tensor(
+            ws), requires_grad=requires_grad)
+
+    def set_projection_from_optimal_weights(self):
+        if self.optimal_weights is not None:
+            self.set_projection_from_weights(self.optimal_weights)
+        else:
+            print('No optimal weights have been stored')
 
     def normalized_proj(self):
         return self._proj / torch.linalg.norm(self._proj)
+
+    def projection_weights(self) -> Dict[int, float]:
+        weights = {f: float(self._proj[f])
+                   for f in range(len(self._proj))}
+        return weights
 
     def forward(self, x):
         batch_size = x.size(0)
@@ -149,7 +182,8 @@ class Selector(pl.LightningModule):
         assert not torch.isinf(loss) and not torch.isnan(loss)
         number_of_selected_features = torch.where(
             p.abs() > self.eps, 1, 0).sum().detach()
-        self.log("number_of_selected_features", number_of_selected_features)
+        self.log("number_of_selected_features",
+                 float(number_of_selected_features))
         self.log("normalized_L1", regularization)
         self.log("L2 norm of P", drift_prevention)
         return components
@@ -167,6 +201,20 @@ class Selector(pl.LightningModule):
         for k, v in loss.items():
             self.log(plot_name + "_" + k, v)
         return loss["loss"]
+
+    def on_train_epoch_end(self):
+        if not hasattr(self, 'weight_history'):
+            self.weight_history = []
+        weights = self.projection_weights()
+        self.weight_history.append(weights)
+        if not hasattr(self, 'mutual_info_history'):
+            self.mutual_info_history = []
+        mi = float(self.val_mutual_information().item())
+        self.mutual_info_history.append(mi)
+        if self.mi_threshold is not None:
+            if self.optimal_weights is None:
+                if mi < self.mi_threshold:
+                    self.optimal_weights = weights
 
     def training_step(self, batch, batch_idx):
         return self._step(batch, batch_idx, "train")
@@ -187,7 +235,6 @@ class Selector(pl.LightningModule):
         pass
 
     def configure_optimizers(self):
-        # optim = torch.optim.Adam([self._proj], lr=self.lr)
         optim = torch.optim.Adam(self.parameters(), lr=self.lr)
         return optim
 
@@ -206,8 +253,9 @@ class Selector(pl.LightningModule):
         return self.mutual_information(self.test_dataloader())
 
     def mutual_information(self, dataloader):
-        x = dataloader.ds.x
-        y = dataloader.ds.y
+        device = self._proj.device
+        x = dataloader.ds.x.to(device)
+        y = dataloader.ds.y.to(device)
         return - self.compute_mi_loss(self.forward(x), y)
 
     @staticmethod
@@ -216,7 +264,7 @@ class Selector(pl.LightningModule):
         y: Tensor,
     ) -> Tuple[Tensor, Tensor]:
         joint: Tensor = torch.cat((x, y), dim=1)
-        x_: Tensor = x  # .detach()
+        x_: Tensor = x
         x_ = x_[torch.randperm(len(x_)), :]
         prod: Tensor = torch.cat((x_, y), dim=1)
         return joint, prod
