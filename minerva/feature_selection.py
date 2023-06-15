@@ -1,6 +1,7 @@
 from typing import Optional, Any, Dict, Union, List
 
 from pathlib import Path
+import numpy as np
 import pandas as pd
 
 import torch
@@ -64,7 +65,8 @@ def train(
         val_dataloader: MyIterableDataset,
         test_dataloader: MyIterableDataset,
         reg_coef: float,
-        projection_init: Optional[float] = None,
+        projection_init: Optional[Union[float,
+                                        np.ndarray, torch.Tensor]] = None,
         disable_projection: bool = False,
         max_epochs: int = 1000,
         load_path: Optional[Union[str, Path]] = None,
@@ -78,7 +80,7 @@ def train(
     selector.set_loaders(train_dataloader, val_dataloader, test_dataloader)
 
     if (not disable_projection) and (load_path is None):
-        selector.enable_projection(wgt_mult=projection_init)
+        selector.enable_projection(weights=projection_init)
     if disable_projection:
         selector.disable_projection()
 

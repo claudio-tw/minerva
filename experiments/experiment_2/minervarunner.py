@@ -4,17 +4,17 @@ import pickle
 import torch
 
 import minerva
+from minerva.select import Selector
 
 
 def main():
-    n = 50000
+    n = 100000
     dy = 1
     num_cat_features = 10
     num_cont_features = 30
     feature_cols = [f'x{n}' for n in range(
         num_cat_features + num_cont_features)]
     cat_features = feature_cols[:num_cat_features]
-    cat_feat_sizes = 1+data.loc[:, cat_features].max().values
     float_features = feature_cols[num_cat_features:]
     targets = [f'y{n}' for n in range(dy)]
 
@@ -23,6 +23,7 @@ def main():
     x = xdf.values
     ydf = data.loc[:, targets]
     y = ydf.values
+    cat_feat_sizes = 1+data.loc[:, cat_features].max().values
     store = pickle.load(open('data/store.exp2', 'rb'))
 
     expected_cat = store['expected_cat']
@@ -49,23 +50,25 @@ def main():
 
     # Split train, validation, and test
     n_samples = len(data)
-    train_size = int(.75 * n_samples)
-    val_size = int(.225 * n_samples)
+    train_size = int(.70 * n_samples)
+    val_size = int(.25 * n_samples)
     test_size = n_samples - train_size - val_size
     train_data = data.iloc[:train_size]
     val_data = data.iloc[train_size: train_size + val_size]
     test_data = data.iloc[:-test_size]
 
     # Set hyperparameters
+    projection_init = np.array(
+        [.175] * num_cat_features + [.25] * num_cont_features
+    )
     dimension_of_residual_block = 512
     num_res_layers = 4
     scaler = 2
     batch_size = scaler*1200
     num_batches = n_samples // batch_size
     max_epochs = int(2000*scaler)
-    lr = 5e-6
     emb_dim = 4
-    reg_coef = 1e6
+    reg_coef = 1e2
 
     # Pack hyperparameters
     selector_params = dict(
@@ -73,12 +76,16 @@ def main():
         float_features=float_features,
         targets=targets,
         dim1_max=dimension_of_residual_block,
-        lr=lr,
         num_res_layers=num_res_layers,
         eps=.001,
         cat_feat_sizes=cat_feat_sizes,
         emb_dim=emb_dim,
     )
+    noreg_selector_params = selector_params.copy()
+    noreg_selector_params['lr'] = 5e-6
+    noreg_selector_params['mi_threshold'] = None
+    reg_selector_params = selector_params.copy()
+    reg_selector_params['lr'] = 1e-6
     logger_params = dict(
         name="experiment_2"
     )
@@ -96,23 +103,28 @@ def main():
 
     logs = []
     # First pass: No regularisation
-    noreg_path = 'data/noreg.model'
-    out, selector = minerva.feature_selection.train(
-        selector_params=selector_params,
-        logger_params=logger_params,
-        train_dataloader=train_dataloader,
-        val_dataloader=val_dataloader,
-        test_dataloader=test_dataloader,
-        reg_coef=.0,
-        projection_init=.20,
-        disable_projection=False,
-        max_epochs=max_epochs,
-        load_path=None
-    )
-    logs.append(out)
-    torch.save(selector.state_dict(), noreg_path)
-    previous_segment_path = noreg_path
+    noreg_path = 'data/noreg.model.4'
+    for segment in range(5):
+        load_path = None if segment == 0 else noreg_path
+        out, selector = minerva.feature_selection.train(
+            selector_params=noreg_selector_params,
+            logger_params=logger_params,
+            train_dataloader=train_dataloader,
+            val_dataloader=val_dataloader,
+            test_dataloader=test_dataloader,
+            reg_coef=.0,
+            projection_init=projection_init,
+            disable_projection=False,
+            max_epochs=max_epochs,
+            load_path=load_path
+        )
+        logs.append(out)
+        torch.save(selector.state_dict(), noreg_path)
 
+    previous_segment_path = noreg_path
+    noreg_mi = float(selector.val_mutual_information().item())
+    mi_threshold = .99 * noreg_mi
+    reg_selector_params['mi_threshold'] = mi_threshold
     # Second pass: Apply regularisation
     for segment in range(5):
         out, selector = minerva.feature_selection.train(
@@ -126,13 +138,28 @@ def main():
             max_epochs=max_epochs,
             load_path=previous_segment_path
         )
-        segment_path = f'data/trained.model.{segment}.0'
+        segment_path = f'data/trained.model.4.{segment}.0'
         torch.save(selector.state_dict(), segment_path)
         logs.append(out)
-        previous_segment_path = segment_path
+        dflogs = pd.DataFrame(logs)
+        dflogs.to_csv('data/traininglogs4.csv', index=False)
+        weights = selector.projection_weights()
+        weight_history = pd.DataFrame(selector.weight_history)
+        weight_history.to_csv(
+            f'data/weight_history_4_segment{segment}.csv', index=False)
+        print(
+            f'train_mutual_information: {float(selector.train_mutual_information())}')
+        print(
+            f'val_mutual_information: {float(selector.val_mutual_information())}')
+        print(f'weights:\n{weights}\n')
+        print(f'expected_cat:\n{expected_cat}\n')
+        print(f'expected_cont0:\n{expected_cont0}\n')
+        print(f'expected_cont1:\n{expected_cont1}\n')
+        print(f'expected_features:\n{expected_features}\n')
+        print(f'selected features:\n{selector.selected_feature_names()}\n')
+        print(f'logs:\n{dflogs}\n')
 
-    dflogs = pd.DataFrame(logs)
-    dflogs.to_csv('data/traininglogs.csv', index=False)
+        previous_segment_path = segment_path
 
 
 if __name__ == '__main__':
