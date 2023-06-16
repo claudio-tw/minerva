@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  hisel_tests:
-    name: "hisel tests"
+  minerva_tests:
+    name: "minerva tests"
     runs-on:
       - self-hosted
       - production
@@ -35,7 +35,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Installing hisel dependencies
+      - name: Installing minerva dependencies
         run: |
           virtualenv minerva-env
           source minerva-env/bin/activate
