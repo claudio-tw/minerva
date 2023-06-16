@@ -59,7 +59,7 @@ def main():
 
     # Set hyperparameters
     projection_init = np.array(
-        [.175] * num_cat_features + [.25] * num_cont_features
+        [.20] * num_cat_features + [.30] * num_cont_features
     )
     dimension_of_residual_block = 512
     num_res_layers = 4
@@ -68,7 +68,7 @@ def main():
     num_batches = n_samples // batch_size
     max_epochs = int(2000*scaler)
     emb_dim = 4
-    reg_coef = 1e2
+    reg_coef = 1e4
 
     # Pack hyperparameters
     selector_params = dict(
@@ -103,7 +103,7 @@ def main():
 
     logs = []
     # First pass: No regularisation
-    noreg_path = 'data/noreg.model.4'
+    noreg_path = 'data/noreg.model.5'
     for segment in range(5):
         load_path = None if segment == 0 else noreg_path
         out, selector = minerva.feature_selection.train(
@@ -119,12 +119,10 @@ def main():
             load_path=load_path
         )
         logs.append(out)
+        noreg_path = f'data/noreg.model.5.{segment}'
         torch.save(selector.state_dict(), noreg_path)
 
     previous_segment_path = noreg_path
-    noreg_mi = float(selector.val_mutual_information().item())
-    mi_threshold = .99 * noreg_mi
-    reg_selector_params['mi_threshold'] = mi_threshold
     # Second pass: Apply regularisation
     for segment in range(5):
         out, selector = minerva.feature_selection.train(
@@ -138,15 +136,15 @@ def main():
             max_epochs=max_epochs,
             load_path=previous_segment_path
         )
-        segment_path = f'data/trained.model.4.{segment}.0'
+        segment_path = f'data/trained.model.5.{segment}'
         torch.save(selector.state_dict(), segment_path)
         logs.append(out)
         dflogs = pd.DataFrame(logs)
-        dflogs.to_csv('data/traininglogs4.csv', index=False)
+        dflogs.to_csv('data/traininglogs5.csv', index=False)
         weights = selector.projection_weights()
         weight_history = pd.DataFrame(selector.weight_history)
         weight_history.to_csv(
-            f'data/weight_history_4_segment{segment}.csv', index=False)
+            f'data/weight_history_5_segment{segment}.csv', index=False)
         print(
             f'train_mutual_information: {float(selector.train_mutual_information())}')
         print(
