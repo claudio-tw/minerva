@@ -108,13 +108,18 @@ class Selector(pl.LightningModule):
         self.val_dataloader = lambda: val_dataloader
         self.test_dataloader = lambda: test_dataloader
 
+    def is_projection_enabled(self):
+        return self._proj.requires_grad
+
     def enable_projection(self, weights: Optional[Union[float, np.ndarray, torch.Tensor]] = None):
         # Network convergence is very sensitive to this value.
         # Too high, and it optimizes MI but features don't go sparse
         # Too low, and the opposite happens
         if weights is None:
-            weights = (1.0/np.sqrt(self.n_features)) * \
-                torch.ones(self.n_features)
+            if hasattr(self, '_proj'):
+                weights = self._proj.clone()
+            else:
+                weights = torch.ones(self.n_features, requires_grad=False)
         elif isinstance(weights, (float, int)):
             weights = weights * torch.ones(self.n_features)
         elif isinstance(weights, torch.Tensor):
@@ -133,11 +138,16 @@ class Selector(pl.LightningModule):
         self.init_norm = torch.linalg.norm(self._proj).detach().cpu().item()
 
     def disable_projection(self):
-        self._proj = nn.Parameter(torch.ones(
-            self.n_features, requires_grad=False), requires_grad=False)
-        self.init_norm = np.sqrt(self.n_features)
+        if hasattr(self, '_proj'):
+            ws = self._proj.clone().detach()
+        else:
+            ws = torch.ones(self.n_features, requires_grad=False)
 
-    def set_projection_from_weights(self, weights: Dict[int, float], requires_grad: bool = True):
+        self._proj = nn.Parameter(ws,
+                                  requires_grad=False)
+        self.init_norm = torch.linalg.norm(self._proj).detach().cpu().item()
+
+    def set_projection_from_weights(self, weights: Union[Sequence[float], Dict[int, float]], requires_grad: bool = True):
         ws = [weights[f] for f in range(len(weights))]
         self._proj = nn.Parameter(torch.Tensor(
             ws), requires_grad=requires_grad)
@@ -252,6 +262,7 @@ class Selector(pl.LightningModule):
     def test_mutual_information(self):
         return self.mutual_information(self.test_dataloader())
 
+    @torch.no_grad()
     def mutual_information(self, dataloader):
         device = self._proj.device
         x = dataloader.ds.x.to(device)
