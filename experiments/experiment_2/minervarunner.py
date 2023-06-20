@@ -119,12 +119,13 @@ def main():
             load_path=load_path
         )
         logs.append(out)
-        noreg_path = f'data/noreg.model.7.{segment}'
+        noreg_path = f'data/noreg.model.8.{segment}'
+        print(f'Saving state dict to {noreg_path}')
         torch.save(selector.state_dict(), noreg_path)
 
     previous_segment_path = noreg_path
     # Second pass: Apply regularisation
-    for segment in range(5):
+    for segment in range(4):
         out, selector = minerva.feature_selection.train(
             selector_params=selector_params,
             logger_params=logger_params,
@@ -137,15 +138,16 @@ def main():
             max_epochs=800,
             load_path=previous_segment_path
         )
-        segment_path = f'data/trained.model.7.{segment}.0'
+        segment_path = f'data/trained.model.8.{segment}.0'
+        print(f'Saving state dict to {segment_path}')
         torch.save(selector.state_dict(), segment_path)
         logs.append(out)
         dflogs = pd.DataFrame(logs)
-        dflogs.to_csv('data/traininglogs7.csv', index=False)
+        dflogs.to_csv('data/traininglogs8.csv', index=False)
         weights = selector.projection_weights()
         weight_history = pd.DataFrame(selector.weight_history)
         weight_history.to_csv(
-            f'data/weight_history_7_segment{segment}.csv', index=False)
+            f'data/weight_history_8_segment{segment}.csv', index=False)
         print(
             f'train_mutual_information: {float(selector.train_mutual_information())}')
         print(
