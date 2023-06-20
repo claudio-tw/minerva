@@ -85,7 +85,7 @@ def main():
     noreg_selector_params['lr'] = 5e-6
     noreg_selector_params['mi_threshold'] = None
     reg_selector_params = selector_params.copy()
-    reg_selector_params['lr'] = 1e-8
+    reg_selector_params['lr'] = 1e-7
     logger_params = dict(
         name="experiment_2"
     )
@@ -103,8 +103,8 @@ def main():
 
     logs = []
     # First pass: No regularisation
-    noreg_path = 'data/noreg.model.7'
-    for segment in range(5):
+    noreg_path = 'data/run3/noreg.model.6.4'
+    for segment in range(1, 2):
         load_path = None if segment == 0 else noreg_path
         out, selector = minerva.feature_selection.train(
             selector_params=noreg_selector_params,
@@ -114,8 +114,8 @@ def main():
             test_dataloader=test_dataloader,
             reg_coef=.0,
             projection_init=projection_init,
-            disable_projection=True,
-            max_epochs=max_epochs,
+            disable_projection=False,
+            max_epochs=800,
             load_path=load_path
         )
         logs.append(out)
@@ -134,10 +134,10 @@ def main():
             reg_coef=reg_coef,
             projection_init=None,
             disable_projection=False,
-            max_epochs=max_epochs,
+            max_epochs=800,
             load_path=previous_segment_path
         )
-        segment_path = f'data/trained.model.7.{segment}.1'
+        segment_path = f'data/trained.model.7.{segment}.0'
         torch.save(selector.state_dict(), segment_path)
         logs.append(out)
         dflogs = pd.DataFrame(logs)

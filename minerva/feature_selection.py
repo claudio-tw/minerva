@@ -90,7 +90,8 @@ def train(
     print(f'Projection enabled: {selector.is_projection_enabled()}')
 
     # Pre-train projection weights
-    weights = selector.projection_weights()
+    weights = {f: round(w, 4)
+               for f, w in selector.projection_weights().items()}
     print(f'Pre-train selection weights:\n{weights}\n')
 
     # Pre-train mutual info
@@ -120,7 +121,8 @@ def train(
     out["selected_features"] = selector.selected_feature_names()
 
     # Post-train projection weights
-    weights = selector.projection_weights()
+    weights = {f: round(w, 4)
+               for f, w in selector.projection_weights().items()}
     print(f'Post-train selection weights:\n{weights}\n')
 
     # Post-train mutual info
