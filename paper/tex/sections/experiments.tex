@@ -118,12 +118,12 @@ See
 \weblink{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}.
 }
 This method estimates the mutual information 
-$I(X_i, Y)$ for all $i = 1, \dots, d$
+$I(X_i; Y)$ for all $i = 1, \dots, d$
 and 
 it selects those features $k$ such that 
-$I(X_k, Y) > \epsilon$
-for a given threhsold $\epsilon$. 
-The estimation of $I(X_i, Y)$ is based on the KSG estimator, 
+$I(X_k; Y) > \epsilon$
+for a given threhsold $\epsilon \geq 0$. 
+The estimation of $I(X_i; Y)$ is based on the KSG estimator, 
 introduced in 
 \cite{KSG04est}.
 
@@ -152,7 +152,7 @@ See \weblink{https://pypi.org/project/pyHSICLasso/}{https://pypi.org/project/pyH
 
 Data and code for our experiments are available 
 at
-\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments}{minerva/experiments/experiment\_1}.\footnote{
+\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments/experiment\_1}{minerva/experiments/experiment\_1}.\footnote{
 	See
 \weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments}{https://github.com/claudio-tw/minerva/tree/trunk/experiments}.
 }
@@ -205,10 +205,12 @@ Tensorboard logs for the training are available at
 \begin{table}
 	\centering
 {\rowcolors{2}{gray!20!white!50}{gray!10!white!40}
-	\begin{tabular}{l|l|l}
+	\begin{tabular}{l|l|l|l}
 		\textbf{method}
 		&
 		\textbf{selection}
+		&
+		\textbf{expected}
 		&
 		\textbf{evaluation}
 		\\
@@ -216,16 +218,22 @@ Tensorboard logs for the training are available at
 		mutual\_info\_classif
 		&
 		1, \dots, 30
+		& 
+		3, 8
 		&
 		non-exact type II
 		\\
 		pyHSICLasso
 		&
 		1, \dots, 30
+		& 
+		3, 8
 		&
 		non-exact type II
 		\\
 		minerva
+		& 
+		3, 8
 		&
 		3, 8
 		&
@@ -260,19 +268,309 @@ Tensorboard logs for the training are available at
 	for all $i=1, \dots, d$
 	\begin{equation}
 		\label{eq.exp1pairwisemi}
-		I(X_i, Y) = 0,
+		I(X_i; Y) = 0,
 	\end{equation}
 	namely $X_i$ and $Y$ are independent. 
 	Moreover,
 	\begin{equation}
 		\label{eq.exp1mi}
-		I((X_{k_0}, X_{k_1}), Y) 
+		I(X_{k_0}, X_{k_1}; Y) 
 		=
 			\frac{m-1}{m} \log\left(\frac{m}{m-1}\right)
 			+
 			\frac{1}{m}\log m
-			.
+			,
 	\end{equation}
+	and $I(X_{k_0}; Y \lvert X_{k_1}) = I(X_{k_1}; Y \lvert X_{k_0})  = I(X_{k_0}, X_{k_1} ; Y)$.
 \end{lemma}
 
+
+
+
+\subsection{Experiment 2}
+
+Let 
+$d_1, d_2$
+be positive integers.
+Let
+$X_1, \dots, X_{d_1}$
+be i.i.d random variables
+such that
+$\Prob(X_1 = k) = 1/m$
+for $k=1, \dots, m$,
+for some positive integer 
+$m > 1$.
+Let 
+$X_{d_1 + 1}, \dots, X_{d_1 + d_2}$
+be i.i.d random variables with uniform distirbution on the unit interval. 
+It is assumed that 
+$X_1, \dots, X_{d_1}$
+and
+$X_{d_1 + 1}, \dots, X_{d_1 + d_2}$
+are independent. 
+Let 
+$k_0, k_1$
+be distinct positive integers 
+smaller than or equal to
+$m$.
+Let 
+$n < d_2$
+and 
+let
+$d_1 < j_0 <  \dots < j_n \leq d_1 + d_2$
+and
+$d_1 < i_0 <  \dots < i_n \leq d_1 + d_2$.
+We define
+\begin{equation}
+	\label{eq.exp2target}
+	Y 
+	=
+	\begin{cases}
+		\sum_{\ell = 1}^{\ell=n} \alpha_\ell \sin\left(2\pi X_{j_\ell}\right)  
+		& \text{ if } X_{k_0} = X_{k_1}
+		\\
+		\sum_{\ell = 1}^{\ell=n} \beta_\ell \cos\left(2\pi X_{i_\ell}\right)  
+		& \text{ otherwise}.
+	\end{cases}
+\end{equation}
+
+
+
+We consider the task of predicting $Y$ from the vector 
+$(X_1, \dots, X_{d_1}, X_{d_1 + 1}, \dots, X_{d_1 + d_2})$,
+and 
+we want to select 
+from this vector 
+the features that are relevant for the prediction.
+This setup is a combination of a 
+straightforward feature selection setup 
+where a target depend non-linearly on a subset of features,
+and 
+the sort of dependence utilised in Experiment 1.
+Namely,
+we assume that 
+there are two continuous non-linear functions $f_1$ and $f_2$,
+and
+the target is a transformation through $f_1$
+of some of the continuous features if two discrete  variables happen to be equal,
+and it is a transformation through $f_2$
+of some other continuous features if those two discrete variables are not equal. 
+
+We test 
+Minerva
+against two benchmark filters, 
+and one bechmark wrapper.
+
+The first benchmark filter is 
+\weblink{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_regression.html}{sklearn.feature\_selection.mutual\_info\_regression}.\footnote{
+See
+\weblink{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_regression.html}{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_regression.html}.
+}
+The second benchmark filter is
+HSIC Lasso
+as implemented in 
+\weblink{https://pypi.org/project/pyHSICLasso/}{pyHSICLasso}.\footnote{
+See \weblink{https://pypi.org/project/pyHSICLasso/}{https://pypi.org/project/pyHSICLasso}.
+}
+The benchmark wrapper is Boruta,
+as implmented in
+\weblink{https://pypi.org/project/arfs/}{arfs}.\footnote{
+See
+\weblink{https://pypi.org/project/arfs/}{https://pypi.org/project/arfs/}.
+}
+
+
+Data and code for our experiments are available 
+at
+\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments/experiment\_2}{minerva/experiments/experiment\_2}.\footnote{
+	See
+\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments}{https://github.com/claudio-tw/minerva/tree/trunk/experiments}.
+}
+More precisely, 
+the synthetic dataset that we use is
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/data/large.csv}{minerva/experiments/experiment\_2/data/large.csv},\footnote{
+See
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/data/large.csv}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/data/large.csv}.
+}
+and 
+the script used for training minerva is
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/minervarunner.py}{minerva/experiments/experiment\_2/minervarunner.py}.\footnote{
+	See
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/minervarunner.py}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/minervarunner.py}.
+}
+The training history of the 
+selection weights
+in the vector $p$
+is available at
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/data/run4/weight\_history\_7\_segment0.csv}{weight\_history.csv}.\footnote{
+	See
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/data/run4/weight\_history\_7\_segment0.csv}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/data/run4/weight\_history\_7\_segment0.csv}.
+}
+% and 
+% Tensorboard logs are available at
+% \weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/tb\_logs/experimnet\_2/run4}{tb\_logs/experiment\_2}.\footnote{
+% 	See
+% 	\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/tb\_logs/experimnet\_2/run4}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/tb\_logs/experimnet\_2/run4}.
+% }
+The benchmark methods of feature selection 
+were
+executed
+in the script
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/benchmarks.py}{minerva/experimnets/experiment\_2/benchmarks.py}.\footnote{
+	See
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/benchmarks.py}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/benchmarks.py}.
+}
+
+
+
+Table
+\ref{tab.experiment2}
+summarises our findings. 
+Minerva is the only method capable of completing an exact selection.
+Sklearn's mutual information, 
+HSIC Lasso,
+and 
+Boruta
+perform a non-exact selection of type I.
+This is reflected in the prediction of the target given the selected features:
+out-of-sample accuracy of a gradient boosting model
+trained on Minerva's selection
+decisevely outperfoms
+the accuracies of the same model trained on
+the featurese selected by the other methods.
+See 
+Table \ref{tab.experiment2accuracy}
+and
+the notebook
+\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/accuracy.ipynb}{accuracy.ipynb}
+
+
+
+
+
+
+\begin{table}
+	\centering
+{\rowcolors{2}{gray!20!white!50}{gray!10!white!40}
+	\begin{tabular}{l|l|l|l}
+		\textbf{method}
+		&
+		\textbf{selection}
+		&
+		\textbf{expected}
+		&
+		\textbf{evaluation}
+		\\
+		\hline
+		mutual\_info\_regression
+		&
+		\tiny{
+		14, 18, 19, 20, 23, 25, 28, 31, 34, 38
+	}
+		& 
+		\tiny{
+		6, 8, 14, 18, 19, 20, 23, 24, 28, 31
+	}
+		&
+		non-exact type I
+		\\
+		pyHSICLasso
+		&
+		\tiny{
+		4, 11, 14, 18, 19, 20, 23, 24, 28, 31
+	}
+		& 
+		\tiny{
+		6, 8, 14, 18, 19, 20, 23, 24, 28, 31
+	}
+		&
+		non-exact type I
+		\\
+		Boruta
+		&
+		\tiny{
+		14, 18, 19, 20, 23, 24, 28, 31
+	}
+		& 
+		\tiny{
+		6, 8, 14, 18, 19, 20, 23, 24, 28, 31
+	}
+		&
+		non-exact type I
+		\\
+		minerva
+		& 
+		\tiny{
+		6, 8, 14, 18, 19, 20, 23, 24, 28, 31
+	}
+		&
+		\tiny{
+		6, 8, 14, 18, 19, 20, 23, 24, 28, 31
+	}
+		&
+		exact
+	\end{tabular}
+}
+\caption{Experiment 2 - Comparison of four different feature selection methods.}
+\label{tab.experiment2}
+\end{table}
+
+
+\begin{table}
+	\centering
+{\rowcolors{2}{gray!20!white!50}{gray!10!white!40}
+	\begin{tabular}{l|c|r|r}
+		\textbf{method}
+		&
+		\textbf{number of features}
+		&
+		\textbf{in-sample R2}
+		&
+		\textbf{out-of--sample R2}
+		\\
+		\hline
+		no selection (use all features)
+		&
+		40
+		&
+		0.8615
+		&
+		0.7990
+		\\
+		mutual\_info\_regression
+		&
+		10
+		&
+		0.7647
+		& 
+		0.6980
+		\\
+		pyHSICLasso
+		&
+		10
+		& 
+		0.7717
+		&
+		0.7004
+		\\
+		Boruta
+		&
+		8
+		& 
+		0.7669
+		&
+		0.7023
+		\\
+		minerva
+		& 
+		10
+		&
+		0.8799
+		&
+		0.8469
+	\end{tabular}
+}
+\caption{Experiment 2 - Accuracy of a gradient boosting model trained on the features selected by various methods}
+\label{tab.experiment2accuracy}
+\end{table}
 
