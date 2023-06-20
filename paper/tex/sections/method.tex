@@ -107,8 +107,20 @@ for the minimisation of
 \begin{equation*}
 	\theta, \projection \longmapsto \lossfun\left(\theta, \projection, c_1, c_2, \sqrt{d}\right).
 \end{equation*}
-After the gradient descent has converged,
-we select the features that correspond to non-null entries of $\projection$.
+We stop this gradient descent 
+when 
+the estimated mutual information 
+between 
+the weighted features
+and
+the targets
+becomes smaller than 
+the mutual information 
+that corresponds to the minimiser 
+$\hat{\theta}$.
+After the gradient descent has stopped,
+we select the features that correspond to non-null weights,
+i.e. to non-null entries of $\projection$.
 More precisely, our method is described in Algorithm \ref{algo.minerva}.
 
 The architecture 
@@ -142,7 +154,8 @@ at
 		$Y\in \spaceY$,
 		hyperparameters
 		$r>0$
-		$c_1\geq 0$, $c_2\geq 0$.
+		$c_1\geq 0$, $c_2\geq 0$,
+		$\delta \geq 0$.
 		\STATE $\theta \leftarrow$ initialise network parameters
 		\REPEAT
 		\STATE Draw $n$ samples $(x_1, y_1), \dots, (x_n, y_n)$ from the joint distribution $\Prob_{XY}$
@@ -155,7 +168,7 @@ at
 		\STATE Sample shuffling permutation $\sigma$ from $S_n$
 		\STATE Update $\varphi \leftarrow \varphi - r \gradient_{\varphi}\lossfun(\varphi, \projection, c_1, c_2, \sqrt{d})$
 		\STATE Update $\projection \leftarrow \projection - r \gradient_{\projection}\lossfun(\varphi, \projection, c_1, c_2, \sqrt{d})$
-		\UNTIL{convergence}
+		\UNTIL{$v(\varphi, p) > v(\theta, \ones) - \delta$}
 		\RETURN $\left\lbrace i: \abs{\projection_i} > 0\right\rbrace$
 	\end{algorithmic}
 \end{algorithm}
