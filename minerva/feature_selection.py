@@ -79,10 +79,26 @@ def train(
     # Set dataloaders
     selector.set_loaders(train_dataloader, val_dataloader, test_dataloader)
 
-    if (not disable_projection) and (load_path is None):
-        selector.enable_projection(weights=projection_init)
+    if projection_init is not None:
+        requires_grad = False if disable_projection else True
+        selector.set_projection_from_weights(projection_init)
+
     if disable_projection:
         selector.disable_projection()
+
+    print(f'Regularization coef: {selector.regularization_coef}')
+    print(f'Projection enabled: {selector.is_projection_enabled()}')
+
+    # Pre-train projection weights
+    weights = {f: round(w, 4)
+               for f, w in selector.projection_weights().items()}
+    print(f'Pre-train selection weights:\n{weights}\n')
+
+    # Pre-train mutual info
+    train_mi = selector.train_mutual_information().item()
+    val_mi = selector.val_mutual_information().item()
+    print(f'Pre-train train mutual info: {train_mi}')
+    print(f'Pre-val val mutual info: {val_mi}')
 
     # Train the model
     torch.set_float32_matmul_precision("medium")
@@ -103,6 +119,17 @@ def train(
     final_test_loss = trainer.test(selector)
     out = final_test_loss[0]
     out["selected_features"] = selector.selected_feature_names()
+
+    # Post-train projection weights
+    weights = {f: round(w, 4)
+               for f, w in selector.projection_weights().items()}
+    print(f'Post-train selection weights:\n{weights}\n')
+
+    # Post-train mutual info
+    train_mi = selector.train_mutual_information().item()
+    val_mi = selector.val_mutual_information().item()
+    print(f'Post-train train mutual info: {train_mi}')
+    print(f'Post-val val mutual info: {val_mi}')
     return out, selector
 
 

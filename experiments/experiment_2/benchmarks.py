@@ -7,12 +7,15 @@ import pickle
 import pandas as pd
 import numpy as np
 import torch
+from arfs.feature_selection import allrelevant
+from arfs.feature_selection.allrelevant import Leshy
+from xgboost import XGBRegressor
 
 import tools
 
 
 def main():
-    n = 50000
+    n = 100000
     dy = 1
     num_cat_features = 10
     num_cont_features = 30
@@ -21,20 +24,17 @@ def main():
     cat_features = feature_cols[:num_cat_features]
     float_features = feature_cols[num_cat_features:]
     targets = [f'y{n}' for n in range(dy)]
-
     data = pd.read_csv('data/large.csv')
     xdf = data.loc[:, feature_cols]
     x = xdf.values
     ydf = data.loc[:, targets]
     y = ydf.values
     store = pickle.load(open('data/store.exp2', 'rb'))
-
     expected_cat = store['expected_cat']
     expected_cont0 = store['expected_cont0']
     expected_cont1 = store['expected_cont1']
     expected_cont = store['expected_cont']
     expected_features = store['expected_features']
-
     # ### Uncover relation between features and data
     _chooser = data.iloc[:, expected_cat[1]] == data.iloc[:, expected_cat[0]]
     idx0 = _chooser == 0
@@ -48,21 +48,44 @@ def main():
         store['t1'] @ np.expand_dims(
             np.cos(2 * np.pi * data.loc[idx1].iloc[:, expected_cont1]),
             axis=2))[:, :, 0]
-
     assert np.allclose(np.squeeze(y_), data['y0'].values, atol=1e-6, rtol=1e-4)
-
     # ### Selection with marginal 1D ksg mutual info
-    ksgselection, mis = tools.ksgmi(xdf, ydf, threshold=0.01)
+    ksgselection, mis = tools.ksgmi(xdf, ydf, threshold=0.02)
     print(f'Expected features: {sorted(expected_features)}')
     print(f'Marginal KSG selection: {sorted(ksgselection)}')
-
     # ### Selection with HSIC Lasso
     xfeattype = tools.FeatureType.FLOAT
     yfeattype = tools.FeatureType.FLOAT
     hsiclasso_selection = tools.pyhsiclasso(
-        x, y, xfeattype=xfeattype, yfeattype=yfeattype, n_features=10, batch_size=500)
+        x[:50000, :], y[:50000, :], xfeattype=xfeattype, yfeattype=yfeattype, n_features=10, batch_size=400)
     print(f'Expected features: {sorted(expected_features)}')
     print(f'HSIC Lasso selection: {sorted(hsiclasso_selection)}')
+
+    # ### Selection with Boruta
+    n_estimators = 'auto'
+    importance = "native"
+    max_iter = 100
+    random_state = None
+    verbose = 0
+    keep_weak = False
+    xdf = pd.DataFrame(x, columns=[f'f{i}' for i in range(
+        num_cat_features + num_cont_features)])
+    yser = pd.Series(y[:, 0], name='y')
+    regressor = XGBRegressor(random_state=42)
+    leshy = Leshy(
+        regressor,
+        n_estimators=n_estimators,
+        importance=importance,
+        max_iter=max_iter,
+        random_state=random_state,
+        verbose=verbose,
+        keep_weak=keep_weak,
+    )
+    leshy.fit(xdf, yser)
+    leshy_selection = [int(col.replace('f', ''))
+                       for col in leshy.selected_features_]
+    print(f'Expected features: {sorted(expected_features)}')
+    print(f'Boruta selection: {sorted(leshy_selection)}')
 
 
 if __name__ == '__main__':

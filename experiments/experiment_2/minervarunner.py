@@ -59,7 +59,7 @@ def main():
 
     # Set hyperparameters
     projection_init = np.array(
-        [.20] * num_cat_features + [.30] * num_cont_features
+        [.90] * num_cat_features + [.95] * num_cont_features
     )
     dimension_of_residual_block = 512
     num_res_layers = 4
@@ -68,7 +68,7 @@ def main():
     num_batches = n_samples // batch_size
     max_epochs = int(2000*scaler)
     emb_dim = 4
-    reg_coef = 1e4
+    reg_coef = 1e0
 
     # Pack hyperparameters
     selector_params = dict(
@@ -85,7 +85,7 @@ def main():
     noreg_selector_params['lr'] = 5e-6
     noreg_selector_params['mi_threshold'] = None
     reg_selector_params = selector_params.copy()
-    reg_selector_params['lr'] = 1e-6
+    reg_selector_params['lr'] = 1e-7
     logger_params = dict(
         name="experiment_2"
     )
@@ -103,8 +103,8 @@ def main():
 
     logs = []
     # First pass: No regularisation
-    noreg_path = 'data/noreg.model.5'
-    for segment in range(5):
+    noreg_path = 'data/run3/noreg.model.6.4'
+    for segment in range(1, 2):
         load_path = None if segment == 0 else noreg_path
         out, selector = minerva.feature_selection.train(
             selector_params=noreg_selector_params,
@@ -115,11 +115,11 @@ def main():
             reg_coef=.0,
             projection_init=projection_init,
             disable_projection=False,
-            max_epochs=max_epochs,
+            max_epochs=800,
             load_path=load_path
         )
         logs.append(out)
-        noreg_path = f'data/noreg.model.5.{segment}'
+        noreg_path = f'data/noreg.model.7.{segment}'
         torch.save(selector.state_dict(), noreg_path)
 
     previous_segment_path = noreg_path
@@ -132,19 +132,20 @@ def main():
             val_dataloader=val_dataloader,
             test_dataloader=test_dataloader,
             reg_coef=reg_coef,
+            projection_init=None,
             disable_projection=False,
-            max_epochs=max_epochs,
+            max_epochs=800,
             load_path=previous_segment_path
         )
-        segment_path = f'data/trained.model.5.{segment}'
+        segment_path = f'data/trained.model.7.{segment}.0'
         torch.save(selector.state_dict(), segment_path)
         logs.append(out)
         dflogs = pd.DataFrame(logs)
-        dflogs.to_csv('data/traininglogs5.csv', index=False)
+        dflogs.to_csv('data/traininglogs7.csv', index=False)
         weights = selector.projection_weights()
         weight_history = pd.DataFrame(selector.weight_history)
         weight_history.to_csv(
-            f'data/weight_history_5_segment{segment}.csv', index=False)
+            f'data/weight_history_7_segment{segment}.csv', index=False)
         print(
             f'train_mutual_information: {float(selector.train_mutual_information())}')
         print(
