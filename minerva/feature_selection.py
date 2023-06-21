@@ -74,6 +74,7 @@ def train(
     selector_params['regularization_coef'] = reg_coef
     selector = Selector(**selector_params)
     if load_path is not None:
+        print(f'loading state dict from {load_path}')
         selector.load_state_dict(torch.load(load_path))
 
     # Set dataloaders
