@@ -147,8 +147,12 @@ class Selector(pl.LightningModule):
                                   requires_grad=False)
         self.init_norm = torch.linalg.norm(self._proj).detach().cpu().item()
 
-    def set_projection_from_weights(self, weights: Union[Sequence[float], Dict[int, float]], requires_grad: bool = True):
-        ws = [weights[f] for f in range(len(weights))]
+    def set_projection_from_weights(self, weights: Union[float, Sequence[float], Dict[int, float]], requires_grad: bool = True):
+        if isinstance(weights, float):
+            ws = [weights] * self.n_features
+        else:
+            assert len(weights) == self.n_features
+            ws = [weights[f] for f in range(len(weights))]
         self._proj = nn.Parameter(torch.Tensor(
             ws), requires_grad=requires_grad)
 
