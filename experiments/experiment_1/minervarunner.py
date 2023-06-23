@@ -66,7 +66,7 @@ def main():
 
     logs = []
     # First pass: No regularisation
-    noreg_path = 'data/noreg.model'
+    noreg_path = 'data/noreg.model.new'
     out, selector = minerva.feature_selection.train(
         selector_params=selector_params,
         logger_params=logger_params,
@@ -96,7 +96,7 @@ def main():
             max_epochs=max_epochs,
             load_path=previous_segment_path
         )
-        segment_path = f'data/trained.model.{segment}.0'
+        segment_path = f'data/trained.model.new.{segment}.0'
         torch.save(selector.state_dict(), segment_path)
         logs.append(out)
         previous_segment_path = segment_path
