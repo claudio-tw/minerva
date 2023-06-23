@@ -22,7 +22,7 @@ $1 < k_0 < k_1 < d$
 and 
 define
 $$
-	Y = 1(	X_{k_0} = X_{k_1}   )
+Y = 1(	X_{k_0} = X_{k_1}   )
 $$
 
 We consider the task of predicting $Y$ from the vector 
