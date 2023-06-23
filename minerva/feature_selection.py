@@ -82,7 +82,7 @@ def train(
 
     if projection_init is not None:
         requires_grad = False if disable_projection else True
-        selector.set_projection_from_weights(projection_init)
+        selector.set_projection_from_weights(projection_init, requires_grad)
 
     if disable_projection:
         selector.disable_projection()
@@ -94,12 +94,6 @@ def train(
     weights = {f: round(w, 4)
                for f, w in selector.projection_weights().items()}
     print(f'Pre-train selection weights:\n{weights}\n')
-
-    # Pre-train mutual info
-    train_mi = selector.train_mutual_information().item()
-    val_mi = selector.val_mutual_information().item()
-    print(f'Pre-train train mutual info: {train_mi}')
-    print(f'Pre-val val mutual info: {val_mi}')
 
     # Train the model
     torch.set_float32_matmul_precision("medium")
@@ -126,11 +120,6 @@ def train(
                for f, w in selector.projection_weights().items()}
     print(f'Post-train selection weights:\n{weights}\n')
 
-    # Post-train mutual info
-    train_mi = selector.train_mutual_information().item()
-    val_mi = selector.val_mutual_information().item()
-    print(f'Post-train train mutual info: {train_mi}')
-    print(f'Post-val val mutual info: {val_mi}')
     return out, selector
 
 

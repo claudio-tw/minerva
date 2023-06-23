@@ -147,10 +147,15 @@ class Selector(pl.LightningModule):
                                   requires_grad=False)
         self.init_norm = torch.linalg.norm(self._proj).detach().cpu().item()
 
-    def set_projection_from_weights(self, weights: Union[Sequence[float], Dict[int, float]], requires_grad: bool = True):
-        ws = [weights[f] for f in range(len(weights))]
+    def set_projection_from_weights(self, weights: Union[float, Sequence[float], Dict[int, float]], requires_grad: bool = True):
+        if isinstance(weights, float):
+            ws = [weights] * self.n_features
+        else:
+            assert len(weights) == self.n_features
+            ws = [weights[f] for f in range(len(weights))]
         self._proj = nn.Parameter(torch.Tensor(
             ws), requires_grad=requires_grad)
+        self.init_norm = torch.linalg.norm(self._proj).detach().cpu().item()
 
     def set_projection_from_optimal_weights(self):
         if self.optimal_weights is not None:
@@ -181,13 +186,15 @@ class Selector(pl.LightningModule):
         mi_loss = self.compute_mi_loss(z, y)
         p = self.normalized_proj()
         regularization = p.abs().sum()
-        drift_prevention = torch.linalg.norm(self._proj)
+        proj_norm = torch.linalg.norm(self._proj)
+        norm_drift = (proj_norm - self.init_norm) ** 2
         loss = (
             mi_loss
             + self.regularization_coef * regularization
-            + self.drift_coef * (drift_prevention - self.init_norm) ** 2
+            + self.drift_coef * norm_drift
         )
-        components = {"mi_loss": mi_loss, "loss": loss}
+        components = {"mi_loss": mi_loss,
+                      "loss": loss, "norm_drift": norm_drift}
 
         assert not torch.isinf(loss) and not torch.isnan(loss)
         number_of_selected_features = torch.where(
@@ -195,7 +202,7 @@ class Selector(pl.LightningModule):
         self.log("number_of_selected_features",
                  float(number_of_selected_features))
         self.log("normalized_L1", regularization)
-        self.log("L2 norm of P", drift_prevention)
+        self.log("L2 norm of P", proj_norm)
         return components
 
     def selected_feature_names(self):
