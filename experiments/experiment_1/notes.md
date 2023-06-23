@@ -18,14 +18,11 @@ $X_1, \dots, X_d$
 are assumed independent and identically distributed.
 Fix 
 two integers
-$ 1 <= k_0 < k_1 <= d$
+$1 < k_0 < k_1 < d$
 and 
 define
 $$
-	Y = 1\left\lbrace
-	X_{k_0} = X_{k_1}
-	\right
-	\rbrace
+	Y = 1(	X_{k_0} = X_{k_1}   )
 $$
 
 We consider the task of predicting $Y$ from the vector 
