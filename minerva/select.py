@@ -155,6 +155,7 @@ class Selector(pl.LightningModule):
             ws = [weights[f] for f in range(len(weights))]
         self._proj = nn.Parameter(torch.Tensor(
             ws), requires_grad=requires_grad)
+        self.init_norm = torch.linalg.norm(self._proj).detach().cpu().item()
 
     def set_projection_from_optimal_weights(self):
         if self.optimal_weights is not None:
