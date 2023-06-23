@@ -18,22 +18,15 @@ $X_1, \dots, X_d$
 are assumed independent and identically distributed.
 Fix 
 two integers
-$ 1 \leq k_0 < k_1 \leq d$
+$ 1 <= k_0 < k_1 <= d$
 and 
 define
-\begin{equation}
-	\label{eq.exp1Y}
-	Y = \one\left\lbrace
+$$
+	Y = 1\left\lbrace
 	X_{k_0} = X_{k_1}
 	\right
 	\rbrace
-	=
-	\begin{cases}
-		1 & \text{ if } X_{k_0} = X_{k_1}
-		\\
-		0 & \text{ otherwise}.
-	\end{cases}
-\end{equation}
+$$
 
 We consider the task of predicting $Y$ from the vector 
 $(X_1, \dots, X_d)$,
