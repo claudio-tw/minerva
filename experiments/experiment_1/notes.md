@@ -33,10 +33,9 @@ from this vector
 the features that are relevant for the prediction.
 
 
-We adopt the following architecture for Minera:
+We adopt the following architecture for Minerva:
 
 ```
-# Design architecture
 dimension_of_residual_block = 512
 num_res_layers = 4
 scaler = 2
