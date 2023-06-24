@@ -186,13 +186,15 @@ class Selector(pl.LightningModule):
         mi_loss = self.compute_mi_loss(z, y)
         p = self.normalized_proj()
         regularization = p.abs().sum()
-        drift_prevention = torch.linalg.norm(self._proj)
+        proj_norm = torch.linalg.norm(self._proj)
+        norm_drift = (proj_norm - self.init_norm) ** 2
         loss = (
             mi_loss
             + self.regularization_coef * regularization
-            + self.drift_coef * (drift_prevention - self.init_norm) ** 2
+            + self.drift_coef * norm_drift
         )
-        components = {"mi_loss": mi_loss, "loss": loss}
+        components = {"mi_loss": mi_loss,
+                      "loss": loss, "norm_drift": norm_drift}
 
         assert not torch.isinf(loss) and not torch.isnan(loss)
         number_of_selected_features = torch.where(
@@ -200,7 +202,7 @@ class Selector(pl.LightningModule):
         self.log("number_of_selected_features",
                  float(number_of_selected_features))
         self.log("normalized_L1", regularization)
-        self.log("L2 norm of P", drift_prevention)
+        self.log("L2 norm of P", proj_norm)
         return components
 
     def selected_feature_names(self):

@@ -33,7 +33,7 @@ def main():
     emb_dim = 4
 
     # Batches and epochs
-    max_epochs = int(2500*scaler)
+    max_epochs = int(2000*scaler)
     batch_size = scaler*1200
 
     # Pack hyperparameters
@@ -53,30 +53,30 @@ def main():
 
     # No-regularisation train control
     noreg_train_control = minerva.feature_selection.TrainControl(
-        model_name='expco_noreg_pe',
+        model_name='expco_noreg',
         data_path='data/',
-        number_of_epochs=2000,
+        number_of_epochs=max_epochs,
         number_of_segments=1,
         learning_rate=5e-6,
         reg_coef=.0,
         projection_init=.20,
         disable_projection=False,
-        first_run_load_path='data/expco_noreg.0',
+        first_run_load_path=None,
     )
 
     # Selection train control
     select_train_control = minerva.feature_selection.TrainControl(
         model_name='expco_sel',
         data_path='data/',
-        number_of_epochs=4000,
-        number_of_segments=2,
+        number_of_epochs=max_epochs,
+        number_of_segments=3,
         learning_rate=5e-6,
         reg_coef=1e6,
         projection_init=None,
         disable_projection=False,
     )
 
-    _ = minerva.feature_selection.run(
+    selector = minerva.feature_selection.run(
         train_data,
         val_data,
         test_data,
@@ -89,6 +89,9 @@ def main():
         select_train_control,
         batch_size,
     )
+    expected_features = [3, 8]
+    print(f'Expected features: {expected_features}')
+    print(f'Selected features: {selector.selected_feature_names()}')
 
 
 if __name__ == '__main__':

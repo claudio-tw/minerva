@@ -65,7 +65,6 @@ def main():
     dimension_of_residual_block = 512
     num_res_layers = 4
     scaler = 2
-    num_batches = n_samples // batch_size
     emb_dim = 4
     reg_coef = 1e0
 
@@ -85,12 +84,12 @@ def main():
         emb_dim=emb_dim,
     )
     logger_params = dict(
-        name="experiment_2_full"
+        name="experiment_1_full"
     )
 
     # No-regularisation train control
     noreg_train_control = minerva.feature_selection.TrainControl(
-        model_name='exp1_noreg',
+        model_name='exp1full_noreg',
         data_path='data/',
         number_of_epochs=max_epochs,
         number_of_segments=5,
@@ -102,17 +101,17 @@ def main():
 
     # Selection train control
     select_train_control = minerva.feature_selection.TrainControl(
-        model_name='exp1_sel',
+        model_name='exp1full_sel',
         data_path='data/',
         number_of_epochs=max_epochs,
-        number_of_segments=2,
+        number_of_segments=3,
         learning_rate=1e-7,
         reg_coef=1e0,
         projection_init=None,
         disable_projection=False,
     )
 
-    _ = minerva.feature_selection.run(
+    selector = minerva.feature_selection.run(
         train_data,
         val_data,
         test_data,
@@ -125,6 +124,9 @@ def main():
         select_train_control,
         batch_size,
     )
+
+    print(f'Expected features: {expected_features}')
+    print(f'Selected features: {selector.selected_feature_names()}')
 
 
 if __name__ == '__main__':
