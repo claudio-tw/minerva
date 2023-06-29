@@ -87,7 +87,7 @@ def train(
 
     if projection_init is not None:
         requires_grad = False if disable_projection else True
-        selector.set_projection_from_weights(projection_init)
+        selector.set_projection_from_weights(projection_init, requires_grad)
 
     if disable_projection:
         selector.disable_projection()
