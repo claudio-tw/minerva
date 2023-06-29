@@ -27,10 +27,6 @@ def main():
         test_size=0.3,
         random_state=40
     )
-    print(f'X_train.shape: {X_train.shape}')
-    print(f'X_test.shape: {X_test.shape}')
-    print(f'y_train.shape: {y_train.shape}')
-    print(f'y_test.shape: {y_test.shape}')
     # ### CatBoost parameters
     params = {
         "iterations": 150,
@@ -47,8 +43,9 @@ def main():
     test_predictions = model.predict(X_test)
     r2_insample = r2_score(y_true=y_train, y_pred=train_predictions)
     r2_outsample = r2_score(y_true=y_test, y_pred=test_predictions)
-    print(f'In-sample R2 score: {r2_insample}')
-    print(f'Out-sample R2 score: {r2_outsample}')
+    print('\nAll features - No selection')
+    print(f'In-sample R2 score: {round(r2_insample, 4)}')
+    print(f'Out-sample R2 score: {round(r2_outsample, 4)}')
 
     # ## Accuracy of prediction based on KSG selection
     X_train_ksg = X_train.loc[:, ksg_selection]
@@ -59,8 +56,9 @@ def main():
     test_predictions_ksg = model_ksg.predict(X_test_ksg)
     r2_insample_ksg = r2_score(y_true=y_train, y_pred=train_predictions_ksg)
     r2_outsample_ksg = r2_score(y_true=y_test, y_pred=test_predictions_ksg)
-    print(f'In-sample R2 score with KSG selection: {r2_insample_ksg}')
-    print(f'Out-sample R2 score with KSG selection: {r2_outsample_ksg}')
+    print('\nKSG')
+    print(f'In-sample R2 score with KSG selection: {round(r2_insample_ksg, 4)}')
+    print(f'Out-sample R2 score with KSG selection: {round(r2_outsample_ksg, 4)}')
 
     # ## Accuracy of prediction based on HSIC selection
     X_train_hsic = X_train.loc[:, hsic_selection]
@@ -71,8 +69,9 @@ def main():
     test_predictions_hsic = model_hsic.predict(X_test_hsic)
     r2_insample_hsic = r2_score(y_true=y_train, y_pred=train_predictions_hsic)
     r2_outsample_hsic = r2_score(y_true=y_test, y_pred=test_predictions_hsic)
-    print(f'In-sample R2 score: {r2_insample_hsic}')
-    print(f'Out-sample R2 score: {r2_outsample_hsic}')
+    print('\nHSIC Lasso')
+    print(f'In-sample R2 score with HSIC Lasso selection: {round(r2_insample_hsic, 4)}')
+    print(f'Out-sample R2 score with HSIC Lasso selection: {round(r2_outsample_hsic, 4)}')
 
     # ## Accuracy of prediction based on boruta selection
     X_train_boruta = X_train.loc[:, boruta_selection]
@@ -85,8 +84,9 @@ def main():
         y_true=y_train, y_pred=train_predictions_boruta)
     r2_outsample_boruta = r2_score(
         y_true=y_test, y_pred=test_predictions_boruta)
-    print(f'In-sample R2 score: {r2_insample_boruta}')
-    print(f'Out-sample R2 score: {r2_outsample_boruta}')
+    print('\nBORUTA')
+    print(f'In-sample R2 score with Boruta selection: {round(r2_insample_boruta, 4)}')
+    print(f'Out-sample R2 score with Boruta selection: {round(r2_outsample_boruta, 4)}')
 
 
 if __name__ == '__main__':
