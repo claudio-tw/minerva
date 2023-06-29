@@ -58,7 +58,7 @@ def main():
 
     # Set hyperparameters
     projection_init = np.array(
-        [.90] * num_cat_features + [.95] * num_cont_features
+        [.10] * num_cat_features + [.10] * num_cont_features
     )
 
     # Design architecture
@@ -66,7 +66,7 @@ def main():
     num_res_layers = 4
     scaler = 2
     emb_dim = 4
-    reg_coef = 1e0
+    reg_coef = 1e5
 
     # Batches and epochs
     max_epochs = int(2000*scaler)
@@ -91,12 +91,13 @@ def main():
     noreg_train_control = minerva.feature_selection.TrainControl(
         model_name='exp1full_noreg',
         data_path='data/',
-        number_of_epochs=max_epochs,
-        number_of_segments=5,
+        number_of_epochs=1000,
+        number_of_segments=1,
         learning_rate=5e-6,
         reg_coef=.0,
         projection_init=projection_init,
         disable_projection=True,
+        first_run_load_path="data/exp1full_noreg.4",
     )
 
     # Selection train control
@@ -104,9 +105,9 @@ def main():
         model_name='exp1full_sel',
         data_path='data/',
         number_of_epochs=max_epochs,
-        number_of_segments=3,
+        number_of_segments=9,
         learning_rate=1e-7,
-        reg_coef=1e0,
+        reg_coef=1e5,
         projection_init=None,
         disable_projection=False,
     )
