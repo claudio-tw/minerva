@@ -52,6 +52,40 @@ but they do not compromise downstream tasks.
 
 
 \subsection{Experiment 1}
+We study the phenomenon
+whereby
+a target $Y$ depends
+on two independent discrete random variables 
+$X_{k_0}$ 
+and
+$X_{k_1}$
+being equal. 
+On the one hand, 
+this sort of dependence is relevant in practice.
+[Here explain Wise datasets, 
+the features CCY\_FROM and CCY\_TO
+and the intuition that 
+accurate 
+classification and prediction 
+need to distiguish 
+multi-currency transfers 
+(where CCY\_FROM is different from CCY\_TO)
+from 
+single-currency transfers
+(where CCY\_FROM is equal to CCY\_TO)
+]
+On the other hand,
+this sort of dependence is not well captured by
+existing feature selection filters. 
+We demonstrate this in a first small example.
+Then,
+we assess the performance of our feature selection filter 
+on a synthetic dataset that 
+is meant to be representative of a common regression learning tasks,
+and that embeds the dependence that 
+existing feature selection filters cannot capture.
+
+\subsubsection{Experiment 1.A}
 Let
 $d$
 be a positive integer,
@@ -179,7 +213,7 @@ in the script
 
 
 Table
-\ref{tab.experiment1}
+\ref{tab.experiment1A}
 summarises our findings. 
 As expected, 
 neither 
@@ -240,8 +274,8 @@ Tensorboard logs for the training are available at
 		exact
 	\end{tabular}
 }
-\caption{Experiment 1 - Comparison of three different feature selection methods.}
-\label{tab.experiment1}
+\caption{Experiment 1.A - Comparison of three different feature selection methods.}
+\label{tab.experiment1A}
 \end{table}
 
 
@@ -287,7 +321,7 @@ Tensorboard logs for the training are available at
 
 
 
-\subsection{Experiment 2}
+\subsubsection{Experiment 1.B}
 
 Let 
 $d_1, d_2$
@@ -346,7 +380,7 @@ This setup is a combination of a
 straightforward feature selection setup 
 where a target depend non-linearly on a subset of features,
 and 
-the sort of dependence utilised in Experiment 1.
+the sort of dependence utilised in Experiment 1.A.
 Namely,
 we assume that 
 there are two continuous non-linear functions $f_1$ and $f_2$,
@@ -424,7 +458,7 @@ in the script
 
 
 Table
-\ref{tab.experiment2}
+\ref{tab.experiment1B}
 summarises our findings. 
 Minerva is the only method capable of completing an exact selection.
 Sklearn's mutual information, 
@@ -437,9 +471,9 @@ out-of-sample accuracy of a gradient boosting model
 trained on Minerva's selection
 decisevely outperfoms
 the accuracies of the same model trained on
-the featurese selected by the other methods.
+the features selected by the other methods.
 See 
-Table \ref{tab.experiment2accuracy}
+Table \ref{tab.experiment1Baccuracy}
 and
 the notebook
 \weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/accuracy.ipynb}{accuracy.ipynb}
@@ -511,8 +545,8 @@ the notebook
 		exact
 	\end{tabular}
 }
-\caption{Experiment 2 - Comparison of four different feature selection methods.}
-\label{tab.experiment2}
+\caption{Experiment 1.B - Comparison of four different feature selection methods.}
+\label{tab.experiment1B}
 \end{table}
 
 
@@ -570,7 +604,7 @@ the notebook
 		0.8469
 	\end{tabular}
 }
-\caption{Experiment 2 - Accuracy of a gradient boosting model trained on the features selected by various methods}
-\label{tab.experiment2accuracy}
+\caption{Experiment 1.B - Accuracy of a gradient boosting model trained on the features selected by various methods}
+\label{tab.experiment1Baccuracy}
 \end{table}
 
