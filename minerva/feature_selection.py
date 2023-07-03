@@ -3,6 +3,7 @@ from typing import Optional, Any, Dict, Union, List
 from pathlib import Path
 import numpy as np
 import pandas as pd
+from dataclasses import dataclass
 
 import torch
 
@@ -64,6 +65,7 @@ def train(
         train_dataloader: MyIterableDataset,
         val_dataloader: MyIterableDataset,
         test_dataloader: MyIterableDataset,
+        learning_rate: float,
         reg_coef: float,
         projection_init: Optional[Union[float,
                                         np.ndarray, torch.Tensor]] = None,
@@ -71,11 +73,14 @@ def train(
         max_epochs: int = 1000,
         load_path: Optional[Union[str, Path]] = None,
 ):
+    selector_params['lr'] = learning_rate
     selector_params['regularization_coef'] = reg_coef
     selector = Selector(**selector_params)
     if load_path is not None:
         print(f'loading state dict from {load_path}')
         selector.load_state_dict(torch.load(load_path))
+    selector.lr = learning_rate
+    selector.regularization_coef = reg_coef
 
     # Set dataloaders
     selector.set_loaders(train_dataloader, val_dataloader, test_dataloader)
@@ -87,6 +92,7 @@ def train(
     if disable_projection:
         selector.disable_projection()
 
+    print(f'Learning rate: {selector.lr}')
     print(f'Regularization coef: {selector.regularization_coef}')
     print(f'Projection enabled: {selector.is_projection_enabled()}')
 
@@ -119,8 +125,20 @@ def train(
     weights = {f: round(w, 4)
                for f, w in selector.projection_weights().items()}
     print(f'Post-train selection weights:\n{weights}\n')
-
     return out, selector
+
+
+@dataclass
+class TrainControl:
+    number_of_epochs: int
+    number_of_segments: int
+    data_path: Union[str, Path]
+    model_name: str
+    learning_rate: float
+    reg_coef: float
+    projection_init: Optional[Union[float, np.ndarray, torch.Tensor]]
+    disable_projection: bool
+    first_run_load_path: Optional[Union[str, Path]] = None
 
 
 def run(
@@ -132,11 +150,9 @@ def run(
         targets: List[str],
         selector_params: Dict[str, Any],
         logger_params: Dict[str, Any],
-        reg_coef: float = 1e5,
-        projection_init: float = .25,
-        batch_size: int = 500,
-        max_epochs: int = 1000,
-        model_path: Union[str, Path] = './noreg.pth',
+        noreg_train_control: TrainControl,
+        select_train_control: TrainControl,
+        batch_size: int
 ):
     train_dataloader, val_dataloader, test_dataloader = dataloaders(
         train_data=train_data,
@@ -147,34 +163,54 @@ def run(
         targets=targets,
         batch_size=batch_size,
     )
-    out, selector = train(
-        selector_params=selector_params,
-        logger_params=logger_params,
-        train_dataloader=train_dataloader,
-        val_dataloader=val_dataloader,
-        test_dataloader=test_dataloader,
-        reg_coef=.0,
-        projection_init=projection_init,
-        disable_projection=False,
-        max_epochs=max_epochs,
-        load_path=None,
-    )
-    torch.save(selector.state_dict(), model_path)
-    out, selector = train(
-        selector_params=selector_params,
-        logger_params=logger_params,
-        train_dataloader=train_dataloader,
-        val_dataloader=val_dataloader,
-        test_dataloader=test_dataloader,
-        reg_coef=reg_coef,
-        projection_init=projection_init,
-        disable_projection=False,
-        max_epochs=max_epochs,
-        load_path=model_path,
-    )
-    # print results
-    print(
-        'Normalised coefficients of the projection matrix:\n'
-        f'{selector.normalized_proj()}\n')
-    print(f'Selected features:\n{selector.selected_feature_names()}\n')
-    return selector.selected_feature_names(), selector
+
+    def _run(train_control: TrainControl):
+        logs = []
+        for segment in range(train_control.number_of_segments):
+            print(f'\n----- Segment: {segment}')
+            model_path = Path(train_control.data_path) / \
+                f'{train_control.model_name}.{segment}'
+            if segment == 0:
+                load_path = train_control.first_run_load_path
+            else:
+                load_path = previous_segment_path
+            out, selector = train(
+                selector_params=selector_params,
+                logger_params=logger_params,
+                train_dataloader=train_dataloader,
+                val_dataloader=val_dataloader,
+                test_dataloader=test_dataloader,
+                learning_rate=train_control.learning_rate,
+                reg_coef=train_control.reg_coef,
+                projection_init=train_control.projection_init,
+                disable_projection=train_control.disable_projection,
+                max_epochs=train_control.number_of_epochs,
+                load_path=load_path,
+            )
+            print(f'Saving state dict to {model_path}')
+            torch.save(selector.state_dict(), model_path)
+            logs.append(out)
+            df_logs = pd.DataFrame(logs)
+            logs_path = Path(train_control.data_path) / \
+                f'{train_control.model_name}_training_logs.csv'
+            df_logs.to_csv(logs_path, index=False)
+            weight_history_path = Path(
+                train_control.data_path) / \
+                f'{train_control.model_name}_weight_history_{segment}.csv'
+            weight_history = pd.DataFrame(selector.weight_history)
+            weight_history.to_csv(weight_history_path, index=False)
+            previous_segment_path = model_path
+        return selector, model_path
+
+    print('\n######################################################')
+    print(f'No-regularisation training')
+    print('######################################################\n')
+    _, noreg_model_path = _run(noreg_train_control)
+
+    select_train_control.first_run_load_path = noreg_model_path
+    print('\n######################################################')
+    print(f'Selection training')
+    print('######################################################\n')
+    selector, model_path = _run(select_train_control)
+    print(f'Selected features:\n{selector.selected_feature_names()}')
+    return selector

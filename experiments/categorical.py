@@ -23,24 +23,48 @@ feature_cols = [f'f{n}' for n in range(dx)]
 float_features = []  # no feature is float
 cat_features = feature_cols  # all features are categorical
 targets = [f'y{n}' for n in range(dy)]
-train_size = int(.66 * n)
-val_size = int(.15 * n)
+train_size = int(.70 * n)
+val_size = int(.20 * n)
 test_size = n - train_size - val_size
 
 
 # Metaparameters
 num_samples = n
+
+# Design architecture
 dimension_of_residual_block = 512
 num_res_layers = 4
-scaler = 2  # Scaler = 4 did the best so far, scaler=8 diverged
-batch_size = scaler*2048
-num_batches = num_samples // batch_size
-max_epochs = int(2000*scaler)  # to keep the number of batches constant
-lr = 1e-5  # scaling that as sqrt(scaler) didn't seem to work
+scaler = 2
 emb_dim = 3
-reg_coef = 1e5
 
-model_path = "./data/categorical/noreg.pth"
+# Batches and epochs
+max_epochs = int(2000*scaler)
+batch_size = scaler*2048
+
+# No-regularisation train control
+noreg_train_control = minerva.feature_selection.TrainControl(
+    model_name='noreg_categorical',
+    data_path='data/',
+    number_of_epochs=max_epochs,
+    number_of_segments=1,
+    learning_rate=5e-6,
+    reg_coef=.0,
+    projection_init=.25,
+    disable_projection=True,
+)
+
+# Selection train control
+select_train_control = minerva.feature_selection.TrainControl(
+    model_name='selection_categorical',
+    data_path='data/',
+    number_of_epochs=max_epochs,
+    number_of_segments=2,
+    learning_rate=5e-6,
+    reg_coef=1e5,
+    projection_init=None,
+    disable_projection=False,
+)
+
 
 # Pack hyperparameters
 selector_params = dict(
@@ -48,14 +72,13 @@ selector_params = dict(
     float_features=float_features,
     targets=targets,
     dim1_max=dimension_of_residual_block,
-    lr=lr,
     num_res_layers=num_res_layers,
     eps=.001,
     cat_feat_sizes=cat_feat_sizes,
     emb_dim=emb_dim,
 )
 logger_params = dict(
-    name="categorical"
+    name="categorical_experiment"
 )
 
 
@@ -123,11 +146,9 @@ def main():
         targets=targets,
         selector_params=selector_params,
         logger_params=logger_params,
-        reg_coef=reg_coef,
-        projection_init=.25,
+        noreg_train_control=noreg_train_control,
+        select_train_control=select_train_control,
         batch_size=batch_size,
-        max_epochs=max_epochs,
-        model_path=model_path,
     )
 
     # print results

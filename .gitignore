@@ -16,6 +16,8 @@ experiments/experiment_1/.ipynb_checkpoints
 *.out
 *.pdf
 paper/tex/figur/*
+experiments/experiment_1/.ipynb_checkpoints/
+experiments/experiment_1/*/.ipynb_checkpoints/
 experiments/experiment_2/.ipynb_checkpoints/
 experiments/experiment_2/catboost_info/
 paper/text/figures/
