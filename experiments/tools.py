@@ -111,6 +111,39 @@ def load_transfer_data(path: Union[str, Path]):
         'DAYS_SINCE_LAST_BALANCE',
         'DAYS_SINCE_LAST_CARD',
         'DAYS_SINCE_LAST_SENDMONEY',
+        'MAX_ACTION_DURATION_BALANCE',
+        'MAX_ACTION_DURATION_SENDMONEY',
+        'MAX_ACTION_DURATION_CARD',
+        'SUM_NEW_COHORT_CUSTOMERS_PREVIOUS_QUARTER',
+        'BALANCE_WITHDRAWAL_COUNT',
+        'CARD_ECOM_PURCHASE_ATTEMPTS_COUNT',
+        'CARD_ECOM_PURCHASE_COUNT',
+        'CARD_POS_PURCHASE_ATTEMPTS_COUNT',
+        'CARD_POS_PURCHASE_COUNT',
+        'BALANCE_CONVERSION_COUNT',
+        'BALANCE_DEPOSIT_FROM_OTHER_TW_USER_BALANCE_SUM_COUNT',
+        'BALANCE_DEPOSIT_FROM_SELF_COUNT',
+        'BALANCE_DEPOSIT_FROM_THIRD_PARTY_COUNT',
+        'CARD_REFUND_COUNT',
+        'BALANCE_DEPOSIT_FROM_OTHER_TW_USER_SENDMONEY_SUM_COUNT',
+        'ACTIVE_DAYS_BALANCE',
+        'DAYSPAN_USING_BALANCE',
+        'DAYSPAN_USING_CARD',
+        'DAYSPAN_USING_SENDMONEY',
+        'ACTIVE_DAYS_CARD',
+        'CARD_ATM_WITHDRAWAL_COUNT',
+        'CARD_ATM_WITHDRAWAL_ATTEMPTS_COUNT',
+        'ACTIVE_DAYS_SENDMONEY',
+        'SUM_FRAUD_10M',
+        'FRAUD_COUNT',
+        'BORDERLESS_DIRECT_DEBIT_SUM_COUNT',
+        'CARD_CASH_ADVANCE_ATTEMPTS_COUNT',
+        'BALANCE_CONVERSION_SUCCESS_RATE',
+        'BALANCE_DEPOSIT_FORM_OTHER_TW_USER_SENDMONEY_SUCCESS_RATE',
+        'CARD_CASH_ADVANCE_SUCCESS_RATE',
+        'BALANCE_DEPOSIT_FROM_OTHER_TW_USER_BALANCE_SUCCESS_RATE',
+        'BORDERLESS_DIRECT_DEBIT_SUCCESS_RATE',
+        'CARD_REFUND_SUCCESS_RATE',
     ]
     df[tofloat] = df[tofloat].astype(float)
     # 3. Ordinal encoding of categorical features
@@ -123,7 +156,7 @@ def load_transfer_data(path: Union[str, Path]):
     floatcols = list(df.dtypes.loc[idxfloat].index)
     intcols = list(set(df.columns).difference(set(floatcols)))
     df[floatcols] = df[floatcols].fillna(.0).astype(float)
-    df[intcols] = df[intcols].fillna(0).astype(int)
+    df[intcols] = df[intcols].fillna(-1).astype(int)
     float_features = floatcols
     cat_features = intcols
     all_targets = [

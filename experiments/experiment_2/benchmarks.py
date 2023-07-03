@@ -37,8 +37,8 @@ def main():
             x[t0:t1, :], y[t0:t1, :],
             xfeattype=xfeattype,
             yfeattype=yfeattype,
-            n_features=10,
-            batch_size=500)
+            n_features=30,
+            batch_size=300)
         print(sel)
         hsiclasso_selection = hsiclasso_selection.union(set(sel))
     hsiclasso_selection = list(
