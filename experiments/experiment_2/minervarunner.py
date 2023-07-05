@@ -25,7 +25,7 @@ def main():
 
     # Set hyperparameters
     projection_init = np.array(
-        [.10] * num_cat_features + [.10] * num_cont_features
+        [.1] * num_cat_features + [.1] * num_cont_features
     )
 
     # Design architecture
@@ -57,9 +57,9 @@ def main():
     noreg_train_control = minerva.feature_selection.TrainControl(
         model_name='transfer3m_noreg',
         data_path='data/',
-        number_of_epochs=4500,
+        number_of_epochs=6000,
         number_of_segments=1,
-        learning_rate=5e-6,
+        learning_rate=1e-6,
         reg_coef=.0,
         projection_init=projection_init,
         disable_projection=True,
@@ -70,10 +70,10 @@ def main():
     select_train_control = minerva.feature_selection.TrainControl(
         model_name='transfer3m_sel',
         data_path='data/',
-        number_of_epochs=max_epochs,
-        number_of_segments=5,
-        learning_rate=1e-7,
-        reg_coef=1e5,
+        number_of_epochs=6000,
+        number_of_segments=4,
+        learning_rate=1e-6,
+        reg_coef=1e6,
         projection_init=None,
         disable_projection=False,
     )
