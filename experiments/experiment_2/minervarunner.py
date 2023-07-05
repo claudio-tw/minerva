@@ -2,13 +2,12 @@ import numpy as np
 import pandas as pd
 
 import minerva
-import tools
+from experiment_2 import utils
 
 
 def main():
-    xdf, ydf, float_features, cat_features = tools.load_transfer_data(
+    xdf, ydf, float_features, cat_features, targets = utils.load_data(
         'data/transfer3m.csv')
-    targets = ['TRANSFER3M_TARGET']
     num_cat_features = len(cat_features)
     num_cont_features = len(float_features)
     data = pd.concat((xdf, ydf), axis=1)

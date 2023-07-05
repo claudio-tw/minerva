@@ -14,13 +14,13 @@ from catboost import CatBoostRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 
-import tools
+from experiment_2 import utils
 from data.benchmark_selection import ksg_selection, hsic_selection, boruta_selection
 
 
 def main():
-    xdf, ydf, float_features, cat_features = tools.load_transfer_data(
-        'data/transfer3m.csv')
+    xdf, ydf, float_features, cat_features, targets = utils.load_data(
+        'data/exp2.csv')
     X_train, X_test, y_train, y_test = train_test_split(
         xdf,
         ydf,
@@ -57,8 +57,10 @@ def main():
     r2_insample_ksg = r2_score(y_true=y_train, y_pred=train_predictions_ksg)
     r2_outsample_ksg = r2_score(y_true=y_test, y_pred=test_predictions_ksg)
     print('\nKSG')
-    print(f'In-sample R2 score with KSG selection: {round(r2_insample_ksg, 4)}')
-    print(f'Out-sample R2 score with KSG selection: {round(r2_outsample_ksg, 4)}')
+    print(
+        f'In-sample R2 score with KSG selection: {round(r2_insample_ksg, 4)}')
+    print(
+        f'Out-sample R2 score with KSG selection: {round(r2_outsample_ksg, 4)}')
 
     # ## Accuracy of prediction based on HSIC selection
     X_train_hsic = X_train.loc[:, hsic_selection]
@@ -70,8 +72,10 @@ def main():
     r2_insample_hsic = r2_score(y_true=y_train, y_pred=train_predictions_hsic)
     r2_outsample_hsic = r2_score(y_true=y_test, y_pred=test_predictions_hsic)
     print('\nHSIC Lasso')
-    print(f'In-sample R2 score with HSIC Lasso selection: {round(r2_insample_hsic, 4)}')
-    print(f'Out-sample R2 score with HSIC Lasso selection: {round(r2_outsample_hsic, 4)}')
+    print(
+        f'In-sample R2 score with HSIC Lasso selection: {round(r2_insample_hsic, 4)}')
+    print(
+        f'Out-sample R2 score with HSIC Lasso selection: {round(r2_outsample_hsic, 4)}')
 
     # ## Accuracy of prediction based on boruta selection
     X_train_boruta = X_train.loc[:, boruta_selection]
@@ -85,8 +89,10 @@ def main():
     r2_outsample_boruta = r2_score(
         y_true=y_test, y_pred=test_predictions_boruta)
     print('\nBORUTA')
-    print(f'In-sample R2 score with Boruta selection: {round(r2_insample_boruta, 4)}')
-    print(f'Out-sample R2 score with Boruta selection: {round(r2_outsample_boruta, 4)}')
+    print(
+        f'In-sample R2 score with Boruta selection: {round(r2_insample_boruta, 4)}')
+    print(
+        f'Out-sample R2 score with Boruta selection: {round(r2_outsample_boruta, 4)}')
 
 
 if __name__ == '__main__':
