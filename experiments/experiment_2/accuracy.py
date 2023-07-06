@@ -16,6 +16,7 @@ from sklearn.metrics import r2_score
 
 from experiment_2 import utils
 from data.benchmark_selection import ksg_selection, hsic_selection, boruta_selection
+from data.minerva_selection import minerva_selection_1, minerva_selection_1_adjusted
 
 
 def main():
@@ -28,11 +29,14 @@ def main():
         random_state=40
     )
     # ### CatBoost parameters
+    # random_state = 15 gives good R2 scores for Minerva selection 1
+    # random_state = 3 or 9 gives good R2 scores for adjusted Minerva selection 1
+    random_state = np.random.randint(low=0, high=100)
+    print(f'Random state used in CatBoostRegressor: {random_state}')
     params = {
-        "iterations": 150,
+        "iterations": 200,
         "depth": 8,
-        "verbose": 10,
-        'random_state': 40,
+        'random_state': random_state,
         'verbose': False
     }
 
@@ -44,6 +48,7 @@ def main():
     r2_insample = r2_score(y_true=y_train, y_pred=train_predictions)
     r2_outsample = r2_score(y_true=y_test, y_pred=test_predictions)
     print('\nAll features - No selection')
+    print(f'Number of features: {X_train.shape[1]}')
     print(f'In-sample R2 score: {round(r2_insample, 4)}')
     print(f'Out-sample R2 score: {round(r2_outsample, 4)}')
 
@@ -57,6 +62,7 @@ def main():
     r2_insample_ksg = r2_score(y_true=y_train, y_pred=train_predictions_ksg)
     r2_outsample_ksg = r2_score(y_true=y_test, y_pred=test_predictions_ksg)
     print('\nKSG')
+    print(f'Number of features: {len(ksg_selection)}')
     print(
         f'In-sample R2 score with KSG selection: {round(r2_insample_ksg, 4)}')
     print(
@@ -72,6 +78,7 @@ def main():
     r2_insample_hsic = r2_score(y_true=y_train, y_pred=train_predictions_hsic)
     r2_outsample_hsic = r2_score(y_true=y_test, y_pred=test_predictions_hsic)
     print('\nHSIC Lasso')
+    print(f'Number of features: {len(hsic_selection)}')
     print(
         f'In-sample R2 score with HSIC Lasso selection: {round(r2_insample_hsic, 4)}')
     print(
@@ -89,10 +96,45 @@ def main():
     r2_outsample_boruta = r2_score(
         y_true=y_test, y_pred=test_predictions_boruta)
     print('\nBORUTA')
+    print(f'Number of features: {len(boruta_selection)}')
     print(
         f'In-sample R2 score with Boruta selection: {round(r2_insample_boruta, 4)}')
     print(
         f'Out-sample R2 score with Boruta selection: {round(r2_outsample_boruta, 4)}')
+
+    # ## Accuracy of prediction based on minerva selection
+    X_train_minerva = X_train.loc[:, minerva_selection_1]
+    X_test_minerva = X_test.loc[:, minerva_selection_1]
+    model_minerva = CatBoostRegressor(**params)
+    model_minerva.fit(X_train_minerva, y_train)
+    train_predictions_minerva = model_minerva.predict(X_train_minerva)
+    test_predictions_minerva = model_minerva.predict(X_test_minerva)
+    r2_insample_minerva = r2_score(
+        y_true=y_train, y_pred=train_predictions_minerva)
+    r2_outsample_minerva = r2_score(
+        y_true=y_test, y_pred=test_predictions_minerva)
+    print('\nMINERVA')
+    print(f'Number of features: {len(minerva_selection_1)}')
+    print(
+        f'In-sample R2 score with Minerva selection: {round(r2_insample_minerva, 4)}')
+    print(
+        f'Out-sample R2 score with Minerva selection: {round(r2_outsample_minerva, 4)}')
+    X_train_minerva = X_train.loc[:, minerva_selection_1_adjusted]
+    X_test_minerva = X_test.loc[:, minerva_selection_1_adjusted]
+    model_minerva = CatBoostRegressor(**params)
+    model_minerva.fit(X_train_minerva, y_train)
+    train_predictions_minerva = model_minerva.predict(X_train_minerva)
+    test_predictions_minerva = model_minerva.predict(X_test_minerva)
+    r2_insample_minerva = r2_score(
+        y_true=y_train, y_pred=train_predictions_minerva)
+    r2_outsample_minerva = r2_score(
+        y_true=y_test, y_pred=test_predictions_minerva)
+    print(
+        f'Number of features in adjusted selection: {len(minerva_selection_1_adjusted)}')
+    print(
+        f'In-sample R2 score with Minerva adjusted selection: {round(r2_insample_minerva, 4)}')
+    print(
+        f'Out-sample R2 score with Minerva adjusted selection: {round(r2_outsample_minerva, 4)}')
 
 
 if __name__ == '__main__':
