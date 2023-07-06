@@ -55,27 +55,34 @@ but they do not compromise downstream tasks.
 We study the phenomenon
 whereby
 a target $Y$ depends
-on two independent discrete random variables 
+on whether
+two independent discrete random variables 
 $X_{k_0}$ 
 and
 $X_{k_1}$
-being equal. 
+are equal or not.
+
 On the one hand, 
 this sort of dependence is relevant in practice.
-[Here explain Wise datasets, 
-the features CCY\_FROM and CCY\_TO
-and the intuition that 
-accurate 
-classification and prediction 
-need to distiguish 
-multi-currency transfers 
-(where CCY\_FROM is different from CCY\_TO)
-from 
-single-currency transfers
-(where CCY\_FROM is equal to CCY\_TO)
-]
+Assume, 
+for example,
+that 
+you are dealing with a data set recording 
+international money transfers.
+This data set will have 
+one column $X_{k_0}$ recording 
+the currency of the country from which the transfer is sent,
+and another column $X_{k_1}$ recording
+the currency of the country to which the transfer is sent.
+The distribution of your data will
+depend on whether the transfer is multicurrency or not, 
+namely on whether $X_{k_0} = X_{k_1}$.
+% This is the real-world example 
+% that we have in mind when experimenting with synthetic data in this section.
+
 On the other hand,
-this sort of dependence is not well captured by
+this sort of dependence
+is not well captured by
 existing feature selection filters. 
 We demonstrate this in a first small example.
 Then,
@@ -149,7 +156,7 @@ two benchmarks.
 The first benchmark is 
 \weblink{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}{sklearn.feature\_selection.mutual\_info\_classif}.\footnote{
 See
-\weblink{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}.
+\url{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_classif.html}
 }
 This method estimates the mutual information 
 $I(X_i; Y)$ for all $i = 1, \dots, d$
@@ -181,34 +188,31 @@ introduced in
 We use the implementation of HSIC Lasso
 given in
 \weblink{https://pypi.org/project/pyHSICLasso/}{pyHSICLasso}.\footnote{
-See \weblink{https://pypi.org/project/pyHSICLasso/}{https://pypi.org/project/pyHSICLasso}.
+See \url{https://pypi.org/project/pyHSICLasso/}
 }
 
 Data and code for our experiments are available 
 at
-\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments/experiment\_1}{minerva/experiments/experiment\_1}.\footnote{
+\weblink{https://github.com/transferwise/minerva/tree/main/experiments/experiment\_1/categorical\_only}{experiment\_1/categorical\_only}.\footnote{
 	See
-\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments}{https://github.com/claudio-tw/minerva/tree/trunk/experiments}.
+\url{https://github.com/transferwise/minerva/tree/main/experiments}. 
 }
 More precisely, 
 the synthetic dataset that we use is
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/data/large.csv}{minerva/experiments/experiment\_1/data/large.csv},\footnote{
-See
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/data/large.csv}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/data/large.csv}.
-}
+ [where?]
 and 
 the script used for training minerva is
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/minervarunner.py}{minerva/experiments/experiment\_1/minervarunner.py}.\footnote{
+\weblink{https://github.com/transferwise/minerva/blob/main/experiments/experiment\_1/categorical\_only/minervarunner.py}{minervarunner.py}.\footnote{
 	See
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/minervarunner.py}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/minervarunner.py}.
+\url{https://github.com/transferwise/minerva/blob/main/experiments/experiment\_1/categorical\_only/minervarunner.py}
 }
 The benchmark methods of feature selection 
 were
 executed
 in the script
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/benchmarks.py}{minerva/experimnets/experiment\_1/benchmarks.py}.\footnote{
+\weblink{https://github.com/transferwise/minerva/blob/main/experiments/experiment\_1/categorical\_only/benchmarks.py}{benchmarks.py}.\footnote{
 	See
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/benchmarks.py}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_1/benchmarks.py}.
+\url{https://github.com/transferwise/minerva/blob/main/experiments/experiment\_1/categorical\_only/benchmarks.py}
 }
 
 
@@ -229,12 +233,6 @@ the selection is non-exact of type I.
 Instead,
 Minerva
 was able to complete an exact selection.
-Tensorboard logs for the training are available at
-\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments/experiment\_1/tb\_logs/experiment\_1}{minerva/experiments/experiment\_1/tb\_logs/}.\footnote{
-	See
-\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments/experiment\_1/tb\_logs/experiment\_1}{https://github.com/claudio-tw/minerva/tree/trunk/experiments/experiment\_1/tb\_logs/experiment\_1}.
-}
-
 
 \begin{table}
 	\centering
@@ -242,7 +240,7 @@ Tensorboard logs for the training are available at
 	\begin{tabular}{l|l|l|l}
 		\textbf{method}
 		&
-		\textbf{selection}
+		\textbf{selected}
 		&
 		\textbf{expected}
 		&
@@ -336,7 +334,7 @@ for some positive integer
 $m > 1$.
 Let 
 $X_{d_1 + 1}, \dots, X_{d_1 + d_2}$
-be i.i.d random variables with uniform distirbution on the unit interval. 
+be i.i.d random variables with uniform distribution on the unit interval. 
 It is assumed that 
 $X_1, \dots, X_{d_1}$
 and
@@ -378,7 +376,7 @@ from this vector
 the features that are relevant for the prediction.
 This setup is a combination of a 
 straightforward feature selection setup 
-where a target depend non-linearly on a subset of features,
+where a target depends non-linearly on a subset of features,
 and 
 the sort of dependence utilised in Experiment 1.A.
 Namely,
@@ -398,61 +396,52 @@ and one bechmark wrapper.
 The first benchmark filter is 
 \weblink{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_regression.html}{sklearn.feature\_selection.mutual\_info\_regression}.\footnote{
 See
-\weblink{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_regression.html}{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_regression.html}.
+\url{https://scikit-learn.org/stable/modules/generated/sklearn.feature\_selection.mutual\_info\_regression.html}
 }
 The second benchmark filter is
 HSIC Lasso
 as implemented in 
 \weblink{https://pypi.org/project/pyHSICLasso/}{pyHSICLasso}.\footnote{
-See \weblink{https://pypi.org/project/pyHSICLasso/}{https://pypi.org/project/pyHSICLasso}.
+See \url{https://pypi.org/project/pyHSICLasso/}
 }
 The benchmark wrapper is Boruta,
 as implmented in
 \weblink{https://pypi.org/project/arfs/}{arfs}.\footnote{
 See
-\weblink{https://pypi.org/project/arfs/}{https://pypi.org/project/arfs/}.
+\url{https://pypi.org/project/arfs/}
 }
 
 
 Data and code for our experiments are available 
 at
-\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments/experiment\_2}{minerva/experiments/experiment\_2}.\footnote{
+\weblink{https://github.com/transferwise/minerva/tree/main/experiments/experiment\_1/full}{experiment\_1/full}.\footnote{
 	See
-\weblink{https://github.com/claudio-tw/minerva/tree/trunk/experiments}{https://github.com/claudio-tw/minerva/tree/trunk/experiments}.
+\url{https://github.com/transferwise/minerva/tree/main/experiments}
 }
 More precisely, 
 the synthetic dataset that we use is
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/data/large.csv}{minerva/experiments/experiment\_2/data/large.csv},\footnote{
-See
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/data/large.csv}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/data/large.csv}.
-}
+[where?]
 and 
 the script used for training minerva is
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/minervarunner.py}{minerva/experiments/experiment\_2/minervarunner.py}.\footnote{
+\weblink{https://github.com/transferwise/minerva/blob/main/experiments/experiment\_1/full/minervarunner.py}{minervarunner.py}.\footnote{
 	See
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/minervarunner.py}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/minervarunner.py}.
+\url{https://github.com/transferwise/minerva/blob/main/experiments/experiment\_1/full/minervarunner.py}
 }
 The training history of the 
 selection weights
 in the vector $p$
 is available at
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/data/run4/weight\_history\_7\_segment0.csv}{weight\_history.csv}.\footnote{
+\weblink{https://github.com/transferwise/minerva/blob/main/experiments/experiment\_1/full/data/run4/weight\_history\_7\_segment0.csv}{weight\_history.csv}.\footnote{
 	See
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/data/run4/weight\_history\_7\_segment0.csv}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/data/run4/weight\_history\_7\_segment0.csv}.
+\url{https://github.com/transferwise/minerva/blob/main/experiments/experiment\_1/full/data/run4/weight\_history\_7\_segment0.csv}
 }
-% and 
-% Tensorboard logs are available at
-% \weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/tb\_logs/experimnet\_2/run4}{tb\_logs/experiment\_2}.\footnote{
-% 	See
-% 	\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/tb\_logs/experimnet\_2/run4}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/tb\_logs/experimnet\_2/run4}.
-% }
 The benchmark methods of feature selection 
 were
 executed
 in the script
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/benchmarks.py}{minerva/experimnets/experiment\_2/benchmarks.py}.\footnote{
+\weblink{https://github.com/transferwise/minerva/blob/main/experiments/experiment\_1/full/benchmarks.py}{benchmarks.py}.\footnote{
 	See
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/benchmarks.py}{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/benchmarks.py}.
+\url{https://github.com/transferwise/minerva/blob/main/experiments/experiment\_1/full/benchmarks.py}
 }
 
 
@@ -476,7 +465,7 @@ See
 Table \ref{tab.experiment1Baccuracy}
 and
 the notebook
-\weblink{https://github.com/claudio-tw/minerva/blob/trunk/experiments/experiment\_2/accuracy.ipynb}{accuracy.ipynb}
+\weblink{https://github.com/transferwise/minerva/blob/main/experiments/experiment\_1/full/accuracy.ipynb}{accuracy.ipynb}
 
 
 
@@ -489,7 +478,7 @@ the notebook
 	\begin{tabular}{l|l|l|l}
 		\textbf{method}
 		&
-		\textbf{selection}
+		\textbf{selected}
 		&
 		\textbf{expected}
 		&

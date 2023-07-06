@@ -29,7 +29,12 @@ def dataloaders(
         float_cols=float_features + targets,
         categorical_cols=categorical_features,
     )
-    train_data = dn.fit_transform(train_data)
+    assert train_data.columns.tolist() == val_data.columns.tolist()
+    assert train_data.columns.tolist() == test_data.columns.tolist()
+    data = pd.concat((train_data, val_data, test_data),
+                     axis=0, ignore_index=True)
+    data = dn.fit_transform(data)
+    train_data = dn.transform(train_data)
     val_data = dn.transform(val_data)
     test_data = dn.transform(test_data)
 

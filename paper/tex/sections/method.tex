@@ -135,14 +135,15 @@ Figure
 
 We implement our MINE-based feature selection in the 
 \weblink{https://pypi.org/}{pypi}-package 
-\weblink{https://github.com/claudio-tw/minerva}{minerva}.\footnote{
+\weblink{https://github.com/transferwise/minerva}{minerva}.\footnote{
 	See
-	\weblink{https://github.com/claudio-tw/minerva}{https://github.com/claudio-tw/minerva}.
+	\url{https://github.com/transferwise/minerva}
 }
 Its usage is demonstrated 
-with Jupyter notebooks
-at
-\weblink{https://github.com/claudio-tw/minerva/tree/trunk/notebooks}{https://github.com/claudio-tw/minerva/tree/trunk/notebooks}.
+with 
+\weblink{https://github.com/transferwise/minerva/tree/main/notebooks}{Jupyter notebooks}.\footnote{
+	See \url{https://github.com/transferwise/minerva/tree/main/notebooks}
+}
 
 \begin{algorithm}
 	\caption{MINE-based feature selection}
@@ -153,7 +154,6 @@ at
 		$X\in \spaceX$,
 		$Y\in \spaceY$,
 		hyperparameters
-		$r>0$
 		$c_1\geq 0$, $c_2\geq 0$,
 		$\delta \geq 0$.
 		\STATE $\theta \leftarrow$ initialise network parameters
@@ -168,7 +168,7 @@ at
 		\STATE Sample shuffling permutation $\sigma$ from $S_n$
 		\STATE Update $\varphi \leftarrow \varphi - r \gradient_{\varphi}\lossfun(\varphi, \projection, c_1, c_2, \sqrt{d})$
 		\STATE Update $\projection \leftarrow \projection - r \gradient_{\projection}\lossfun(\varphi, \projection, c_1, c_2, \sqrt{d})$
-		\UNTIL{$v(\varphi, p) > v(\theta, \ones) - \delta$}
+		\UNTIL{ convergence}
 		\RETURN $\left\lbrace i: \abs{\projection_i} > 0\right\rbrace$
 	\end{algorithmic}
 \end{algorithm}

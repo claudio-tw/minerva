@@ -6,17 +6,17 @@ from pathlib import Path
 import pickle
 import pandas as pd
 import numpy as np
-import torch
 from arfs.feature_selection import allrelevant
 from arfs.feature_selection.allrelevant import Leshy
 from xgboost import XGBRegressor
 
 import tools
+from experiment_2 import utils
 
 
 def main():
-    xdf, ydf, float_features, cat_features = tools.load_transfer_data(
-        'data/transfer3m.csv')
+    xdf, ydf, float_features, cat_features, targets = utils.load_data(
+        'data/exp2.csv')
     all_features = cat_features + float_features
     x = xdf.values
     y = ydf.values
@@ -37,8 +37,8 @@ def main():
             x[t0:t1, :], y[t0:t1, :],
             xfeattype=xfeattype,
             yfeattype=yfeattype,
-            n_features=10,
-            batch_size=500)
+            n_features=30,
+            batch_size=300)
         print(sel)
         hsiclasso_selection = hsiclasso_selection.union(set(sel))
     hsiclasso_selection = list(
@@ -53,7 +53,7 @@ def main():
     random_state = None
     verbose = 0
     keep_weak = False
-    yser = ydf['TRANSFER3M_TARGET']
+    yser = ydf['y']
     regressor = XGBRegressor(random_state=42)
     leshy = Leshy(
         regressor,
