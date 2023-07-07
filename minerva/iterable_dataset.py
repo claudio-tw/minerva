@@ -32,7 +32,7 @@ class MyDataset(Dataset):
                  device: str = 'cpu',
                  ):
         self.device = device
-        self.float_features = list(float_features)
+        self.float_features = float_features
         self.cat_features = cat_features
         if isinstance(targets, str):
             self.targets = [targets]

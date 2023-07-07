@@ -54,22 +54,22 @@ def main():
 
     # No-regularisation train control
     noreg_train_control = minerva.feature_selection.TrainControl(
-        model_name='transfer3m_noreg_bis',
+        model_name='transfer3m_noreg',
         data_path='data/',
-        number_of_epochs=500,
+        number_of_epochs=6500,
         number_of_segments=1,
         learning_rate=1e-6,
         reg_coef=.0,
-        projection_init=None, # projection_init,
+        projection_init=None,  # projection_init,
         disable_projection=True,
-        first_run_load_path='data/transfer3m_sel.3',
+        first_run_load_path=None,
     )
 
     # Selection train control
     select_train_control = minerva.feature_selection.TrainControl(
-        model_name='transfer3m_sel_bis',
+        model_name='transfer3m_sel',
         data_path='data/',
-        number_of_epochs=6000,
+        number_of_epochs=6500,
         number_of_segments=4,
         learning_rate=1e-6,
         reg_coef=1e6,

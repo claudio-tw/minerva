@@ -16,7 +16,10 @@ from sklearn.metrics import r2_score
 
 from experiment_2 import utils
 from data.benchmark_selection import ksg_selection, hsic_selection, boruta_selection
-from data.minerva_selection import minerva_selection_1, minerva_selection_1_adjusted
+from data.minerva_selection import (
+    minerva_selection_1,
+    minerva_selection_1_adjusted,
+)
 
 
 def main():
@@ -31,6 +34,7 @@ def main():
     # ### CatBoost parameters
     # random_state = 15 gives good R2 scores for Minerva selection 1
     # random_state = 3 or 9 gives good R2 scores for adjusted Minerva selection 1
+    # random_state = 1 gives bad R2 scores for Boruta and good R2 scores for Minerva selection 1
     random_state = np.random.randint(low=0, high=100)
     print(f'Random state used in CatBoostRegressor: {random_state}')
     params = {
