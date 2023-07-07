@@ -77,6 +77,8 @@ class Selector(pl.LightningModule):
         self.optimal_weights = None
         self.lr = lr
         self.regularization_coef = regularization_coef
+        self.cat_features = cat_features
+        self.float_features = float_features
         self.feature_names = np.array(cat_features + float_features)
         self.n_features = len(self.feature_names)
         self.n_cat_features = len(cat_features)
@@ -104,6 +106,12 @@ class Selector(pl.LightningModule):
             self.n_cat_features, cat_feat_sizes, self.emb_dim)
 
     def set_loaders(self, train_dataloader, val_dataloader, test_dataloader):
+        assert train_dataloader.ds.cat_features == self.cat_features
+        assert train_dataloader.ds.float_features == self.float_features
+        assert val_dataloader.ds.cat_features == self.cat_features
+        assert val_dataloader.ds.float_features == self.float_features
+        assert test_dataloader.ds.cat_features == self.cat_features
+        assert test_dataloader.ds.float_features == self.float_features
         self.train_dataloader = lambda: train_dataloader
         self.val_dataloader = lambda: val_dataloader
         self.test_dataloader = lambda: test_dataloader
@@ -147,7 +155,7 @@ class Selector(pl.LightningModule):
                                   requires_grad=False)
         self.init_norm = torch.linalg.norm(self._proj).detach().cpu().item()
 
-    def set_projection_from_weights(self, weights: Union[float, Sequence[float], Dict[int, float]], requires_grad: bool = True):
+    def set_projection_from_weights(self, weights: Union[float, Sequence[float]], requires_grad: bool = True):
         if isinstance(weights, float):
             ws = [weights] * self.n_features
         else:
@@ -166,9 +174,16 @@ class Selector(pl.LightningModule):
     def normalized_proj(self):
         return self._proj / torch.linalg.norm(self._proj)
 
-    def projection_weights(self) -> Dict[int, float]:
-        weights = {f: float(self._proj[f])
-                   for f in range(len(self._proj))}
+    def projection_weights(self) -> Dict[str, float]:
+        cat_weights = {
+            feature: float(self._proj[f])
+            for f, feature in enumerate(self.cat_features)
+        }
+        float_weights = {
+            feature: float(self._proj[self.n_cat_features + f])
+            for f, feature in enumerate(self.float_features)
+        }
+        weights = {**cat_weights, **float_weights}
         return weights
 
     def forward(self, x):
