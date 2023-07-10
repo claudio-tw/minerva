@@ -15,16 +15,22 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 
 from experiment_2 import utils
-from data.benchmark_selection import ksg_selection, hsic_selection, boruta_selection
+from data.benchmark_selection_filtered import (
+    ksg_selection,
+    hsic_selection,
+    boruta_selection,
+    hisel_selection,
+)
 from data.minerva_selection import (
     minerva_selection_1,
+    minerva_filtered_selection_1,
     minerva_selection_1_adjusted,
 )
 
 
 def main():
     xdf, ydf, float_features, cat_features, targets = utils.load_data(
-        'data/exp2.csv')
+        'data/exp2filtered.csv')
     X_train, X_test, y_train, y_test = train_test_split(
         xdf,
         ydf,
@@ -88,6 +94,23 @@ def main():
     print(
         f'Out-sample R2 score with HSIC Lasso selection: {round(r2_outsample_hsic, 4)}')
 
+    # ## Accuracy of prediction based on HISEL selection
+    X_train_hisel = X_train.loc[:, hisel_selection]
+    X_test_hisel = X_test.loc[:, hisel_selection]
+    model_hisel = CatBoostRegressor(**params)
+    model_hisel.fit(X_train_hisel, y_train)
+    train_predictions_hisel = model_hisel.predict(X_train_hisel)
+    test_predictions_hisel = model_hisel.predict(X_test_hisel)
+    r2_insample_hisel = r2_score(
+        y_true=y_train, y_pred=train_predictions_hisel)
+    r2_outsample_hisel = r2_score(y_true=y_test, y_pred=test_predictions_hisel)
+    print('\nHISEL Lasso')
+    print(f'Number of features: {len(hisel_selection)}')
+    print(
+        f'In-sample R2 score with HISEL Lasso selection: {round(r2_insample_hisel, 4)}')
+    print(
+        f'Out-sample R2 score with HISEL Lasso selection: {round(r2_outsample_hisel, 4)}')
+
     # ## Accuracy of prediction based on boruta selection
     X_train_boruta = X_train.loc[:, boruta_selection]
     X_test_boruta = X_test.loc[:, boruta_selection]
@@ -107,8 +130,8 @@ def main():
         f'Out-sample R2 score with Boruta selection: {round(r2_outsample_boruta, 4)}')
 
     # ## Accuracy of prediction based on minerva selection
-    X_train_minerva = X_train.loc[:, minerva_selection_1]
-    X_test_minerva = X_test.loc[:, minerva_selection_1]
+    X_train_minerva = X_train.loc[:, minerva_filtered_selection_1]
+    X_test_minerva = X_test.loc[:, minerva_filtered_selection_1]
     model_minerva = CatBoostRegressor(**params)
     model_minerva.fit(X_train_minerva, y_train)
     train_predictions_minerva = model_minerva.predict(X_train_minerva)
@@ -118,7 +141,7 @@ def main():
     r2_outsample_minerva = r2_score(
         y_true=y_test, y_pred=test_predictions_minerva)
     print('\nMINERVA')
-    print(f'Number of features: {len(minerva_selection_1)}')
+    print(f'Number of features: {len(minerva_filtered_selection_1)}')
     print(
         f'In-sample R2 score with Minerva selection: {round(r2_insample_minerva, 4)}')
     print(
