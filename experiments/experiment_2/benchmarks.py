@@ -10,13 +10,14 @@ from arfs.feature_selection import allrelevant
 from arfs.feature_selection.allrelevant import Leshy
 from xgboost import XGBRegressor
 
+
 import tools
 from experiment_2 import utils
 
 
 def main():
     xdf, ydf, float_features, cat_features, targets = utils.load_data(
-        'data/exp2.csv')
+        'data/exp2filtered.csv')
     all_features = cat_features + float_features
     x = xdf.values
     y = ydf.values
