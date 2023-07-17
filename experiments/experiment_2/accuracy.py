@@ -9,13 +9,12 @@ import pickle
 import pandas as pd
 import numpy as np
 import torch
-from xgboost import XGBRegressor
 from catboost import CatBoostRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 
 from experiment_2 import utils
-from data.benchmark_selection_filtered import (
+from data.benchmark_selection_large import (
     ksg_selection,
     hsic_selection,
     boruta_selection,
@@ -25,6 +24,8 @@ from data.minerva_selection import (
     minerva_selection_1,
     minerva_filtered_selection_1,
     minerva_selection_1_adjusted,
+    minerva_selection_large_1,
+    minerva_selection_large_2,
 )
 
 # ### CatBoost parameters
@@ -54,18 +55,21 @@ def train_and_evaluate(X_train, y_train, X_val, y_val, X_test, y_test, selection
     return r2_insample, r2_outsample
 
 
-def main(dataset_path='data/exp2filtered.csv'):  # or 'data/exp2.csv'):
+def main(dataset_path='data/exp2large.csv'):
     xdf, ydf, float_features, cat_features, targets = utils.load_data(
         dataset_path)
-    X_train, X_test, y_train, y_test = train_test_split(
+    num_samples = 500000
+    xdf = xdf.iloc[:num_samples]
+    ydf = ydf.iloc[:num_samples]
+    X_, X_test, y_, y_test = train_test_split(
         xdf,
         ydf,
-        test_size=0.2,
+        test_size=0.1,
         random_state=None
     )
     X_train, X_val, y_train, y_val = train_test_split(
-        xdf,
-        ydf,
+        X_,
+        y_,
         test_size=0.3,
         random_state=None
     )
@@ -137,16 +141,16 @@ def main(dataset_path='data/exp2filtered.csv'):  # or 'data/exp2.csv'):
         f'In-sample R2 score with Boruta selection: {round(r2_insample_boruta, 4)}')
     print(
         f'Out-sample R2 score with Boruta selection: {round(r2_outsample_boruta, 4)}')
-
+#
     # ## Accuracy of prediction based on minerva selection
     r2_insample_minerva, r2_outsample_minerva = train_and_evaluate(
         X_train, y_train,
         X_val, y_val,
         X_test, y_test,
-        selection=minerva_filtered_selection_1,
+        selection=minerva_selection_large_2,
     )
     print('\nMINERVA')
-    print(f'Number of features: {len(minerva_filtered_selection_1)}')
+    print(f'Number of features: {len(minerva_selection_large_2)}')
     print(
         f'In-sample R2 score with Minerva selection: {round(r2_insample_minerva, 4)}')
     print(

@@ -16,9 +16,12 @@ import tools
 from experiment_2 import utils
 
 
-def main():
+def main(data_path='data/exp2large.csv'):
     xdf, ydf, float_features, cat_features, targets = utils.load_data(
-        'data/exp2filtered.csv')
+        data_path)
+    num_samples = 500000
+    xdf = xdf.iloc[:num_samples]
+    ydf = ydf.iloc[:num_samples]
     search_parameters = hisel.feature_selection.SearchParameters(
         num_permutations=10,
         im_ratio=.01,
@@ -41,4 +44,8 @@ def main():
         hsiclasso_parameters,
         search_parameters
     )
-    return res
+    print(f"HISEL selection:\n{res['selected_features']}")
+
+
+if __name__ == '__main__':
+    main()
