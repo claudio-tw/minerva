@@ -13,7 +13,7 @@ from catboost import CatBoostClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import auc, roc_curve
 
-from experiment_2 import utils
+from experiment_3 import utils
 from data.benchmark_selection import (
     ksg_selection,
     #     hsic_selection,
@@ -44,8 +44,8 @@ def train_and_evaluate(X_train, y_train, X_val, y_val, X_test, y_test, selection
     model = CatBoostClassifier(**catboost_params)
     model.fit(x_train, y_train, eval_set=(
         x_val, y_val), early_stopping_rounds=20)
-    train_predictions = model.predict(x_train)
-    test_predictions = model.predict(x_test)
+    train_predictions = model.predict_proba(x_train)[:, 1]
+    test_predictions = model.predict_proba(x_test)[:, 1]
     fpr_insample, tpr_insample, _ = roc_curve(y_train, train_predictions)
     aucroc_insample = auc(fpr_insample, tpr_insample)
     fpr_outsample, tpr_outsample, _ = roc_curve(y_test, test_predictions)
@@ -53,7 +53,7 @@ def train_and_evaluate(X_train, y_train, X_val, y_val, X_test, y_test, selection
     return aucroc_insample, aucroc_outsample
 
 
-def main(dataset_path='data/exp3.csv'):
+def main(dataset_path='data/down3.csv'):
     xdf, ydf, float_features, cat_features, targets = utils.load_data(
         dataset_path)
     X_, X_test, y_, y_test = train_test_split(
