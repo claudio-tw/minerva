@@ -6,13 +6,8 @@ from pathlib import Path
 import pickle
 import pandas as pd
 import numpy as np
-from arfs.feature_selection import allrelevant
-from arfs.feature_selection.allrelevant import Leshy
-from xgboost import XGBRegressor
 
 import hisel
-
-import tools
 from experiment_2 import utils
 
 
@@ -32,7 +27,7 @@ def main(data_path='data/exp2large.csv'):
     hsiclasso_parameters = hisel.feature_selection.HSICLassoParameters(
         mi_threshold=.001,
         hsic_threshold=.01,
-        batch_size=9000,
+        batch_size=5000,
         minibatch_size=500,
         number_of_epochs=2,
         use_preselection=True,
