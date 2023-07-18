@@ -51,39 +51,35 @@ def train_and_evaluate(X_train, y_train, X_val, y_val, X_test, y_test, selection
     return aucroc_insample, aucroc_outsample
 
 
-def main(dataset_path='data/exp3_validation.csv'):
-    xdf, ydf, float_features, cat_features, targets = utils.load_data(
-        dataset_path)
-    X_, X_test, y_, y_test = train_test_split(
-        xdf,
-        ydf,
-        test_size=0.1,
-        random_state=None
-    )
-    X_train, X_val, y_train, y_val = train_test_split(
-        X_,
-        y_,
-        test_size=0.3,
-        random_state=None
-    )
+def main():
+    xdf_train, ydf_train, ffeat_train, cfeat_train, targets = utils.load_data(
+        'data/exp3_train.csv')
+    xdf_val, ydf_val, ffeat_val, cfeat_val, targets = utils.load_data(
+        'data/exp3_validation.csv')
+    xdf_test, ydf_test, ffeat_test, cfeat_test, targets = utils.load_data(
+        'data/exp3_test.csv')
+    assert ffeat_train == ffeat_val
+    assert ffeat_train == ffeat_test
+    assert cfeat_train == cfeat_val
+    assert cfeat_train == cfeat_test
 
     # ## Accuracy of prediction based on all features
     aucroc_insample, aucroc_outsample = train_and_evaluate(
-        X_train, y_train,
-        X_val, y_val,
-        X_test, y_test,
+        xdf_train, ydf_train,
+        xdf_val, ydf_val,
+        xdf_test, ydf_test,
         selection=None
     )
     print('\nAll features - No selection')
-    print(f'Number of features: {X_train.shape[1]}')
+    print(f'Number of features: {xdf_train.shape[1]}')
     print(f'In-sample AUC-ROC score: {round(aucroc_insample, 4)}')
     print(f'Out-sample AUC-ROC score: {round(aucroc_outsample, 4)}')
 
     # ## Accuracy of prediction based on KSG selection
 #     aucroc_insample_ksg, aucroc_outsample_ksg = train_and_evaluate(
-#         X_train, y_train,
-#         X_val, y_val,
-#         X_test, y_test,
+#         xdf_train, ydf_train,
+#         xdf_val, ydf_val,
+#         xdf_test, ydf_test,
 #         selection=ksg_selection,
 #     )
 #     print('\nKSG')
@@ -95,9 +91,9 @@ def main(dataset_path='data/exp3_validation.csv'):
 
     # ## Accuracy of prediction based on HSIC selection
 #     aucroc_insample_hsic, aucroc_outsample_hsic = train_and_evaluate(
-#         X_train, y_train,
-#         X_val, y_val,
-#         X_test, y_test,
+#         xdf_train, ydf_train,
+#         xdf_val, ydf_val,
+#         xdf_test, ydf_test,
 #         selection=hsic_selection,
 #     )
 #     print('\nHSIC Lasso')
@@ -109,9 +105,9 @@ def main(dataset_path='data/exp3_validation.csv'):
 
     # ## Accuracy of prediction based on HISEL selection
 #     aucroc_insample_hisel, aucroc_outsample_hisel = train_and_evaluate(
-#         X_train, y_train,
-#         X_val, y_val,
-#         X_test, y_test,
+#         xdf_train, ydf_train,
+#         xdf_val, ydf_val,
+#         xdf_test, ydf_test,
 #         selection=hisel_selection,
 #     )
 #     print('\nHISEL')
@@ -123,9 +119,9 @@ def main(dataset_path='data/exp3_validation.csv'):
 
     # ## Accuracy of prediction based on boruta selection
 #     aucroc_insample_boruta, aucroc_outsample_boruta = train_and_evaluate(
-#         X_train, y_train,
-#         X_val, y_val,
-#         X_test, y_test,
+#         xdf_train, ydf_train,
+#         xdf_val, ydf_val,
+#         xdf_test, ydf_test,
 #         selection=boruta_selection,
 #     )
 #     print('\nBORUTA')
@@ -137,9 +133,9 @@ def main(dataset_path='data/exp3_validation.csv'):
 #
     # ## Accuracy of prediction based on minerva selection
     aucroc_insample_minerva, aucroc_outsample_minerva = train_and_evaluate(
-        X_train, y_train,
-        X_val, y_val,
-        X_test, y_test,
+        xdf_train, ydf_train,
+        xdf_val, ydf_val,
+        xdf_test, ydf_test,
         selection=minerva_selection_1,
     )
     print('\nMINERVA')
