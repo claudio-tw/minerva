@@ -44,6 +44,21 @@ def train_and_evaluate(X_train, y_train, X_val, y_val, X_test, y_test, selection
         x_val, y_val), early_stopping_rounds=20)
     train_predictions = model.predict_proba(x_train)[:, 1]
     test_predictions = model.predict_proba(x_test)[:, 1]
+
+    recall_insample = recall_score(y_train, train_predictions)
+    precision_insample = precision_score(y_train, train_predictions)
+    fpr_insample, tpr_insample, _ = roc_curve(y_train, train_prediction_probabilities)
+    aucroc_insample = auc(fpr_insample, tpr_insample)
+
+    recall_outsample = recall_score(y_test, test_predictions)
+    precision_outsample = precision_score(y_test, test_predictions)
+    fpr_outsample, tpr_outsample, _ = roc_curve(y_test, test_prediction_probabilities)
+    aucroc_outsample = auc(fpr_outsample, tpr_outsample)
+
+    return recall_insample, precision_insample, recall_outsample, precision_outsample, aucroc_insample, aucroc_outsample`
+
+
+
     fpr_insample, tpr_insample, _ = roc_curve(y_train, train_predictions)
     aucroc_insample = auc(fpr_insample, tpr_insample)
     fpr_outsample, tpr_outsample, _ = roc_curve(y_test, test_predictions)
@@ -64,7 +79,7 @@ def main():
     assert cfeat_train == cfeat_test
 
     # ## Accuracy of prediction based on all features
-    aucroc_insample, aucroc_outsample = train_and_evaluate(
+    recall_insample, precision_insample, recall_outsample, precision_outsample, aucroc_insample, aucroc_outsample = train_and_evaluate(
         xdf_train, ydf_train,
         xdf_val, ydf_val,
         xdf_test, ydf_test,
@@ -72,67 +87,15 @@ def main():
     )
     print('\nAll features - No selection')
     print(f'Number of features: {xdf_train.shape[1]}')
+    print(f'In-sample recall: {round(recall_insample, 4)}')
+    print(f'Out-sample recall: {round(recall_outsample, 4)}')
+    print(f'In-sample precision: {round(precision_insample, 4)}')
+    print(f'Out-sample precision: {round(precision_outsample, 4)}')
     print(f'In-sample AUC-ROC score: {round(aucroc_insample, 4)}')
     print(f'Out-sample AUC-ROC score: {round(aucroc_outsample, 4)}')
 
-    # ## Accuracy of prediction based on KSG selection
-#     aucroc_insample_ksg, aucroc_outsample_ksg = train_and_evaluate(
-#         xdf_train, ydf_train,
-#         xdf_val, ydf_val,
-#         xdf_test, ydf_test,
-#         selection=ksg_selection,
-#     )
-#     print('\nKSG')
-#     print(f'Number of features: {len(ksg_selection)}')
-#     print(
-#         f'In-sample AUC-ROC score with KSG selection: {round(aucroc_insample_ksg, 4)}')
-#     print(
-#         f'Out-sample AUC-ROC score with KSG selection: {round(aucroc_outsample_ksg, 4)}')
-
-    # ## Accuracy of prediction based on HSIC selection
-#     aucroc_insample_hsic, aucroc_outsample_hsic = train_and_evaluate(
-#         xdf_train, ydf_train,
-#         xdf_val, ydf_val,
-#         xdf_test, ydf_test,
-#         selection=hsic_selection,
-#     )
-#     print('\nHSIC Lasso')
-#     print(f'Number of features: {len(hsic_selection)}')
-#     print(
-#         f'In-sample AUC-ROC score with HSIC Lasso selection: {round(aucroc_insample_hsic, 4)}')
-#     print(
-#         f'Out-sample AUC-ROC score with HSIC Lasso selection: {round(aucroc_outsample_hsic, 4)}')
-
-    # ## Accuracy of prediction based on HISEL selection
-#     aucroc_insample_hisel, aucroc_outsample_hisel = train_and_evaluate(
-#         xdf_train, ydf_train,
-#         xdf_val, ydf_val,
-#         xdf_test, ydf_test,
-#         selection=hisel_selection,
-#     )
-#     print('\nHISEL')
-#     print(f'Number of features: {len(hisel_selection)}')
-#     print(
-#         f'In-sample AUC-ROC score with HISEL selection: {round(aucroc_insample_hisel, 4)}')
-#     print(
-#         f'Out-sample AUC-ROC score with HISEL selection: {round(aucroc_outsample_hisel, 4)}')
-
-    # ## Accuracy of prediction based on boruta selection
-#     aucroc_insample_boruta, aucroc_outsample_boruta = train_and_evaluate(
-#         xdf_train, ydf_train,
-#         xdf_val, ydf_val,
-#         xdf_test, ydf_test,
-#         selection=boruta_selection,
-#     )
-#     print('\nBORUTA')
-#     print(f'Number of features: {len(boruta_selection)}')
-#     print(
-#         f'In-sample AUC-ROC score with Boruta selection: {round(aucroc_insample_boruta, 4)}')
-#     print(
-#         f'Out-sample AUC-ROC score with Boruta selection: {round(aucroc_outsample_boruta, 4)}')
-#
     # ## Accuracy of prediction based on minerva selection
-    aucroc_insample_minerva, aucroc_outsample_minerva = train_and_evaluate(
+     recall_insample_minerva, precision_insample_minerva, recall_outsample_minerva, precision_outsample_minerva, aucroc_insample_minerva, aucroc_outsample_minerva = train_and_evaluate(
         xdf_train, ydf_train,
         xdf_val, ydf_val,
         xdf_test, ydf_test,
@@ -140,11 +103,14 @@ def main():
     )
     print('\nMINERVA')
     print(f'Number of features: {len(minerva_selection_1)}')
+    print(f'In-sample recall with Minerva selection: {round(recall_insample_minerva, 4)}')
+    print(f'Out-sample recall with Minerva selection: {round(recall_outsample_minerva, 4)}')
+    print(f'In-sample precision with Minerva selection: {round(precision_insample_minerva, 4)}')
+    print(f'Out-sample precision with Minerva selection: {round(precision_outsample_minerva, 4)}')
     print(
         f'In-sample AUC-ROC score with Minerva selection: {round(aucroc_insample_minerva, 4)}')
     print(
         f'Out-sample AUC-ROC score with Minerva selection: {round(aucroc_outsample_minerva, 4)}')
-#
 
 
 if __name__ == '__main__':
