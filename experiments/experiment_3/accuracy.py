@@ -51,7 +51,7 @@ def train_and_evaluate(X_train, y_train, X_val, y_val, X_test, y_test, selection
     return aucroc_insample, aucroc_outsample
 
 
-def main(dataset_path='data/exp3.csv'):
+def main(dataset_path='data/exp3_validation.csv'):
     xdf, ydf, float_features, cat_features, targets = utils.load_data(
         dataset_path)
     X_, X_test, y_, y_test = train_test_split(

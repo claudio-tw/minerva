@@ -222,15 +222,6 @@ def main(
 ):
     dataset = pd.read_parquet(uri)
     df = transform_original_dataset(dataset)
-    # 8. Repeat data so that the training sees equal amount of 0s and 1s
-    idx_y1 = df['y'] == 1
-    num1 = sum(idx_y1)
-    num_repeat = len(df) // num1
-    df1 = df.loc[idx_y1].copy()
-    df = pd.concat([df] + ([df1]*num_repeat), axis=0, ignore_index=True)
-    num_samples = 800000
-    random_state = 40
-    df = df.sample(num_samples, random_state=random_state, ignore_index=True)
     df.to_csv(destination, index=False)
 
 
