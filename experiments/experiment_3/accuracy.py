@@ -5,10 +5,8 @@
 
 
 from pathlib import Path
-import pickle
 import pandas as pd
 import numpy as np
-import torch
 from catboost import CatBoostClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import auc, roc_curve
@@ -53,7 +51,7 @@ def train_and_evaluate(X_train, y_train, X_val, y_val, X_test, y_test, selection
     return aucroc_insample, aucroc_outsample
 
 
-def main(dataset_path='data/down3.csv'):
+def main(dataset_path='data/exp3.csv'):
     xdf, ydf, float_features, cat_features, targets = utils.load_data(
         dataset_path)
     X_, X_test, y_, y_test = train_test_split(
@@ -138,18 +136,18 @@ def main(dataset_path='data/down3.csv'):
 #         f'Out-sample AUC-ROC score with Boruta selection: {round(aucroc_outsample_boruta, 4)}')
 #
     # ## Accuracy of prediction based on minerva selection
-#     aucroc_insample_minerva, aucroc_outsample_minerva = train_and_evaluate(
-#         X_train, y_train,
-#         X_val, y_val,
-#         X_test, y_test,
-#         selection=minerva_selection_1,
-#     )
-#     print('\nMINERVA')
-#     print(f'Number of features: {len(minerva_selection_1)}')
-#     print(
-#         f'In-sample AUC-ROC score with Minerva selection: {round(aucroc_insample_minerva, 4)}')
-#     print(
-#         f'Out-sample AUC-ROC score with Minerva selection: {round(aucroc_outsample_minerva, 4)}')
+    aucroc_insample_minerva, aucroc_outsample_minerva = train_and_evaluate(
+        X_train, y_train,
+        X_val, y_val,
+        X_test, y_test,
+        selection=minerva_selection_1,
+    )
+    print('\nMINERVA')
+    print(f'Number of features: {len(minerva_selection_1)}')
+    print(
+        f'In-sample AUC-ROC score with Minerva selection: {round(aucroc_insample_minerva, 4)}')
+    print(
+        f'Out-sample AUC-ROC score with Minerva selection: {round(aucroc_outsample_minerva, 4)}')
 #
 
 
