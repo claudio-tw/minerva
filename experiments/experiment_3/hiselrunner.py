@@ -11,7 +11,7 @@ import hisel
 import utils
 
 
-def main(data_path='data/exp3.csv'):
+def main(data_path='data/exp3_chron.csv'):
     xdf, ydf, float_features, cat_features, targets = utils.load_data(
         data_path)
     search_parameters = hisel.feature_selection.SearchParameters(

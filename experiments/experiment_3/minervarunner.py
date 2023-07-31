@@ -9,7 +9,7 @@ import utils
 
 def main():
     xdf, ydf, float_features, cat_features, targets = utils.load_data(
-        'data/exp3.csv')
+        'data/exp3_chron.csv')
     num_cat_features = len(cat_features)
     num_cont_features = len(float_features)
     data = pd.concat((xdf, ydf), axis=1)
