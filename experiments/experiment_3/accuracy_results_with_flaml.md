@@ -17,4 +17,12 @@ Out-sample AUC-PRC score: 0.6898
 
 Minerva selection:
 ```
+MINERVA
+Number of features: 167
+In-sample recall with Minerva selection: 1.0
+Out-sample recall with Minerva selection: 0.2292
+In-sample precision with Minerva selection: 1.0
+Out-sample precision with Minerva selection: 0.9862
+In-sample AUC-PRC score with Minerva selection: 1.0
+Out-sample AUC-PRC score with Minerva selection: 0.5964
 ```
