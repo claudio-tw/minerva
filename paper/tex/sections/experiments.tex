@@ -2,18 +2,19 @@
 In this section,
 we present the results of our numerical experiments.
 Our experiments are based
-either 
-on real-world datasets
-or on synthetic data.
+% either 
+% on real-world datasets 
+% or 
+on synthetic data.
 
-With real-world datasets,
-we evaluate
-feature selection methods
-by looking at 
-how
-the out-of-sample accuracy of the prediction / classification
-improves with the reduced dimensionality of the selected features
-compared to the full datasets.
+% With real-world datasets,
+% we evaluate
+% feature selection methods
+% by looking at 
+% how
+% the out-of-sample accuracy of the prediction / classification
+% improves with the reduced dimensionality of the selected features
+% compared to the full datasets.
 
 With synthetic data, 
 out 
@@ -51,7 +52,7 @@ might not reduce the dimensionality of the problem,
 but they do not compromise downstream tasks. 
 
 
-\subsection{Experiment 1}
+\subsection{Our synthetised $X$-$Y$ relationship}
 We study the phenomenon
 whereby
 a target $Y$ depends
@@ -92,7 +93,7 @@ is meant to be representative of a common regression learning tasks,
 and that embeds the dependence that 
 existing feature selection filters cannot capture.
 
-\subsubsection{Experiment 1.A}
+\subsubsection{Experiment A}
 Let
 $d$
 be a positive integer,
@@ -191,16 +192,13 @@ given in
 See \url{https://pypi.org/project/pyHSICLasso/}
 }
 
-Data and code for our experiments are available 
+The code for our experiments are available 
 at
 \weblink{https://github.com/transferwise/minerva/tree/main/experiments/experiment\_1/categorical\_only}{experiment\_1/categorical\_only}.\footnote{
 	See
 \url{https://github.com/transferwise/minerva/tree/main/experiments}. 
 }
 More precisely, 
-the synthetic dataset that we use is
- [where?]
-and 
 the script used for training minerva is
 \weblink{https://github.com/transferwise/minerva/blob/main/experiments/experiment\_1/categorical\_only/minervarunner.py}{minervarunner.py}.\footnote{
 	See
@@ -319,7 +317,7 @@ was able to complete an exact selection.
 
 
 
-\subsubsection{Experiment 1.B}
+\subsubsection{Experiment B}
 
 Let 
 $d_1, d_2$
@@ -365,6 +363,16 @@ We define
 		& \text{ otherwise}.
 	\end{cases}
 \end{equation}
+In other words,
+$Y$ 
+is a non-linear function of some of continuous features
+if 
+$X_{k_0} = X_{k_1}$,
+and 
+$Y$ 
+is some other non-linear function of some other conitnuous features 
+if 
+$X_{k_0} \neq X_{k_1}$.
 
 
 
@@ -378,7 +386,7 @@ This setup is a combination of a
 straightforward feature selection setup 
 where a target depends non-linearly on a subset of features,
 and 
-the sort of dependence utilised in Experiment 1.A.
+the sort of dependence utilised in Experiment A.
 Namely,
 we assume that 
 there are two continuous non-linear functions $f_1$ and $f_2$,
@@ -412,16 +420,13 @@ See
 }
 
 
-Data and code for our experiments are available 
+The code for our experiments is available 
 at
 \weblink{https://github.com/transferwise/minerva/tree/main/experiments/experiment\_1/full}{experiment\_1/full}.\footnote{
 	See
 \url{https://github.com/transferwise/minerva/tree/main/experiments}
 }
 More precisely, 
-the synthetic dataset that we use is
-[where?]
-and 
 the script used for training minerva is
 \weblink{https://github.com/transferwise/minerva/blob/main/experiments/experiment\_1/full/minervarunner.py}{minervarunner.py}.\footnote{
 	See

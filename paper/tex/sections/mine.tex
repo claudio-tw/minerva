@@ -1,7 +1,143 @@
 \section{Neural estimation of mutual information}
+\label{sec.mine}
 
 In this section,
 we recall the neural estimation of mutual information
 following
 \cite{BBROBCH18mut}.
+
+
+
+
+Let 
+$\spaceX \subset \Rd$
+and 
+$\spaceY \subset \R^{e}$
+represent sample spaces.
+Let 
+$X$
+and 
+$Y$
+be random variables taking values in 
+$\spaceX$
+and 
+$\spaceY$
+respectively.
+Let 
+$\Prob_{XY}$ 
+denote the joint distribution of 
+$X$
+and
+$Y$; 
+and let 
+$\Prob_{X} \otimes \Prob_{Y}$
+denote the
+product of the marginal
+laws of $X$ and $Y$.
+
+The mutual information 
+$I(X; Y)$
+of 
+$X$ 
+and 
+$Y$
+is defined as the 
+Kullback-Leibler
+divergence 
+between
+$\Prob_{XY}$ 
+and
+$\Prob_{X} \otimes \Prob_{Y}$.
+
+Using the Donsker-Varadhan representation of the 
+Kullback-Leibler
+divergence 
+(see \cite{DV83asy}),
+we can write
+\begin{equation}
+	\label{eq.dvrepresentationofmutualinfo}
+	I(X; Y)
+	= 
+	\sup_{f}
+	\quad
+	\Expectation_{\Prob_{XY}}
+	\left[
+		f(X, Y)
+	\right]
+        - \log
+	\left(
+	\Expectation_{\Prob_{X} \otimes \Prob_{Y}}
+	\left[
+		\exp(f(X, Y))
+	\right]
+	\right),
+\end{equation}
+where 
+$\Expectation_{\Prob_{XY}}$ 
+denotes expectation with respect to 
+$\Prob_{XY}$,
+$\Expectation_{\Prob_{X} \otimes \Prob_{Y}}$ 
+denotes expectation with respect to 
+$\Prob_{X} \otimes \Prob_{Y}$,
+and
+the supremum is taken over 
+all measurable functions 
+$f: \spaceX \times \spaceY \rightarrow \R$ 
+such that the two expectations are finite.
+
+Given samples 
+\begin{equation}
+	\label{eq.jointsamples}
+	(x_1, y_1), 
+	\dots,
+	(x_n, y_n), 
+\end{equation}
+from the joint distribution of $X$ and $Y$,
+we can use the representation
+in equation \eqref{eq.dvrepresentationofmutualinfo}
+to 
+estimate the mutual information of the two random variables.
+Indeed,
+we can  represent the functions
+$f$
+in equation \eqref{eq.dvrepresentationofmutualinfo}
+via a neural network 
+$f_\theta$ 
+parametrised by $\theta \in \Theta$,
+and then 
+run gradient ascend in the parameter space $\Theta$ to
+maximise 
+the emprirical objective functional of equation \eqref{eq.dvrepresentationofmutualinfo}, 
+where
+the first expectation is replaced by 
+\begin{equation*}
+	\frac{1}{n}\sum_{i=1}^{n} f(x_i, y_i),
+\end{equation*}
+and the second expectation is replaced by 
+\begin{equation*}
+	\frac{1}{n}\sum_{i=1}^{n} \exp\left(
+	f(x_i, y_{\sigma(i)})
+	\right),
+\end{equation*}
+where $\sigma$ is a permutation 
+used to shuffle 
+the $Y$-samples 
+and 
+hence turn the samples \eqref{eq.jointsamples}
+into a sample from 
+$\Prob_{X} \otimes \Prob_{Y}$.
+
+The described approach to 
+estimate the mutual information 
+$I(X; Y)$
+is at the core of MINE, 
+and we will rely on this method 
+to construct a feature selection filter. 
+
+
+
+
+
+
+
 
