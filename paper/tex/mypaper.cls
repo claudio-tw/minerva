@@ -56,6 +56,7 @@
 \newtheorem{approximation}{Approximation}
 
 %% MISCELLANEOUS %%
+\usepackage{authblk}
 \usepackage{fancyhdr, float, enumerate, longtable, pdfpages, booktabs, upquote, mathtools, setspace, tikz}
 \sloppy %Prevents overflowing on lines 
 
