@@ -8,15 +8,12 @@ import pandas as pd
 import numpy as np
 
 import hisel
-from experiment_2 import utils
+import utils
 
 
-def main(data_path='data/exp2large.csv'):
+def main(data_path='data/exp3_chron.csv'):
     xdf, ydf, float_features, cat_features, targets = utils.load_data(
         data_path)
-    num_samples = 500000
-    xdf = xdf.iloc[:num_samples]
-    ydf = ydf.iloc[:num_samples]
     search_parameters = hisel.feature_selection.SearchParameters(
         num_permutations=10,
         im_ratio=.01,

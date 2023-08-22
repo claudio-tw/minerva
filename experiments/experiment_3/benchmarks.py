@@ -3,22 +3,18 @@
 
 
 from pathlib import Path
-import pickle
 import pandas as pd
 import numpy as np
 
 
 import tools
-from experiment_2 import utils
+from experiment_3 import utils
 
 
 def main():
     xdf, ydf, float_features, cat_features, targets = utils.load_data(
-        'data/exp2large.csv')
+        'data/exp3.csv')
     all_features = cat_features + float_features
-    num_samples = 500000
-    xdf = xdf.iloc[:num_samples]
-    ydf = ydf.iloc[:num_samples]
     x = xdf.values
     y = ydf.values
 

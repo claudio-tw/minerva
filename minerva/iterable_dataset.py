@@ -38,6 +38,9 @@ class MyDataset(Dataset):
             self.targets = [targets]
         else:
             self.targets = list(targets)
+        assert set(cat_features).issubset(set(df.columns))
+        assert set(float_features).issubset(set(df.columns))
+        assert set(targets).issubset(set(df.columns))
         self.number_of_samples = len(df)
 
         self.x = torch.from_numpy(

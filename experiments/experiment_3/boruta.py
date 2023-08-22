@@ -8,15 +8,12 @@ from arfs.feature_selection import allrelevant
 from arfs.feature_selection.allrelevant import Leshy
 from xgboost import XGBRegressor
 
-from experiment_2 import utils
+from experiment_3 import utils
 
 
 def main(batch_size=100000):
     xdf, ydf, float_features, cat_features, targets = utils.load_data(
-        'data/exp2large.csv')
-    num_samples = 500000
-    xdf = xdf.iloc[:num_samples]
-    ydf = ydf.iloc[:num_samples]
+        'data/exp3.csv')
     all_features = cat_features + float_features
 
     # ### Selection with Boruta

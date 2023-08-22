@@ -29,3 +29,4 @@ experiments/experiment_2/sensitive.py
 paper/text/figures/
 experiments/experiment_3/.ipynb_checkpoints/
 experiments/experiment_3/catboost_info/
+experiments/experiment_3/card_data.py
