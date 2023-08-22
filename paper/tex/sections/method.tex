@@ -1,4 +1,7 @@
 \section{Feature selection method}
+\label{sec.method}
+
+
 In this section,
 we describe
 our method of feature selection.
@@ -65,7 +68,7 @@ be a famility of measurable functions
 \begin{equation*}
 	f_\theta: \spaceX \times \spaceY \rightarrow \R
 \end{equation*}
-parametrised by the parameter $\theta \in \Theta$ of the neural network.
+parametrised by the parameter $\theta \in \Theta$ of a neural network.
 Let 
 $\projection \in \Rd$
 be a $d$-dimensional vector. 
@@ -73,7 +76,11 @@ We define
 \begin{equation}
 	\donskervaradhanloss(\theta, \projection) = - \jointeval[f_\theta, \projection] + \log \left(\prodeval[f_\theta, \projection]\right)
 \end{equation}
-and, 
+and, recalling Section \ref{sec.mine},
+we consider 
+$\donskervaradhanloss ( \cdot, p)$ 
+as an approximation of the negative of the mutual information of $p \odot X$ and $Y$. 
+Moreover, 
 for 
 non-negative real coefficients $c_1$, $c_2$, $a$
 we define
@@ -92,6 +99,42 @@ where
 $\lonenorm$ denotes $\Lone$-norm 
 and 
 $\ltwonorm$ denotes $\Ltwo$-norm.
+
+The function $\lossfun$ is the loss function. 
+It consists of three terms.
+The first term 
+$\donskervaradhanloss(\theta, \projection)$
+is the discretisation of the functional that appears 
+in the Donsker-Varadhan representation of 
+the Kullback-Leibler divergence.
+It approximates the negative mutual information 
+between the target and the $\projection$-weighted features.
+
+The second term 
+$
+\lonenorm[\frac{\projection}{\ltwonorm[\projection]}]
+$
+is a regularisation term on the
+weights $\projection \in \Rd$.
+It induces sparsity 
+by pushing to zero the weights of non-relevant features.
+
+Finally,
+the third term
+$
+\left( \ltwonorm[\projection] - a \right)\squared
+$
+controls the euclidean norm of the 
+weights $\projection \in \Rd$
+by penalising the square of the difference between
+said norm 
+and
+the target norm $a$.
+This is meant
+to prevent 
+the weights of relevant features 
+from diverging.
+
 
 Our feature selection method
 consists in
@@ -154,8 +197,7 @@ with
 		$X\in \spaceX$,
 		$Y\in \spaceY$,
 		hyperparameters
-		$c_1\geq 0$, $c_2\geq 0$,
-		$\delta \geq 0$.
+		$r>0$, $c_1\geq 0$, $c_2\geq 0$.
 		\STATE $\theta \leftarrow$ initialise network parameters
 		\REPEAT
 		\STATE Draw $n$ samples $(x_1, y_1), \dots, (x_n, y_n)$ from the joint distribution $\Prob_{XY}$

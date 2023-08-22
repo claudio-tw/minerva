@@ -7,17 +7,80 @@ between
 features 
 and 
 targets.
+We call our method 
+\emph{Minerva}.
 
 
-Recall distinction between
-on the one hand
-wrappers and embedded methods,
-on the other hand
-filters. 
-The former are model-dependent selection procedures,
-the latter are model-free selection algorithms.
-Minerva is a filter algorithm for feature selection.
+Feature selection methods
+are distinguished in
+two classes: 
+wrappers,
+and
+filters.
+On the one hand,
+wrappers
+assume 
+knowledge of the learning model
+and use the learning process as a subroutine. 
+They are usually computationally expensive,
+and they are model-dependent.
+On the other hand,
+filters 
+utilize a score of dependence between features and target,
+and they select a subset of features based on this score.
+Filters
+do not require knowledge of the learning procedure,
+and hence they are model-independent.
 
+Minerva belongs to the class of filters,
+and utilizes the mutual information as score.
+
+Estimating the mutual information between random variables
+is challenging. 
+The classical estimator is the
+Kraskov-St{\"o}gbauer-Grassberger (KSG) estimator
+introduced in \cite{KSG04est},
+and proved to be a consistent estimator in
+\cite{GOV18dem}.
+Recently, 
+a modern, consistent estimator 
+called 
+\emph{Mutual Information Neural Estimator (MINE)}
+was proposed
+in
+\cite{BBROBCH18mut},
+and applications have flourished.
+Our feature selection procedure Minerva
+utilises MINE to compute the mutual information score. 
+Our score
+evaluates subsets of features as an ensemble,
+instead of considering one feature at a time
+as most feature selection filters do.
+This allows us to 
+capture sophisticated relationships
+between features and targets,
+and 
+to take such sophisticated relationships
+into account when selecting relevant features.
+We give examples of such relationships,
+and we demonstrate that
+Minerva is capable of performing an exact selection,
+whereas other existing methods fail to do so.
+
+
+The paper is organised as follows.
+Section \ref{sec.mine}
+recalls the fundmentals of MINE,
+the Mutual Information Neural Estimator. 
+Section \ref{sec.method}
+explains our method of featurte selection 
+and
+describe our neural network architecture.
+Section \ref{sec.experiments}
+presents our numerical experiments with Minerva.
+Finally, 
+Section \ref{sec.proofs}
+collects the proofs of the lemmata and propositions of the article.
 
 
 
