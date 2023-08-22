@@ -100,6 +100,42 @@ $\lonenorm$ denotes $\Lone$-norm
 and 
 $\ltwonorm$ denotes $\Ltwo$-norm.
 
+The function $\lossfun$ is the loss function. 
+It consists of three terms.
+The first term 
+$\donskervaradhanloss(\theta, \projection)$
+is the discretisation of the functional that appears 
+in the Donsker-Varadhan representation of 
+the Kullback-Leibler divergence.
+It approximates the negative mutual information 
+between the target and the $\projection$-weighted features.
+
+The second term 
+$
+\lonenorm[\frac{\projection}{\ltwonorm[\projection]}]
+$
+is a regularisation term on the
+weights $\projection \in \Rd$.
+It induces sparsity 
+by pushing to zero the weights of non-relevant features.
+
+Finally,
+the third term
+$
+\left( \ltwonorm[\projection] - a \right)\squared
+$
+controls the euclidean norm of the 
+weights $\projection \in \Rd$
+by penalising the square of the difference between
+said norm 
+and
+the target norm $a$.
+This is meant
+to prevent 
+the weights of relevant features 
+from diverging.
+
+
 Our feature selection method
 consists in
 finding a minimiser 
