@@ -1,16 +1,24 @@
 # MINERVA
 
 ### MINE-based feature selection
+Minerva is a feature selection tool 
+based on 
+neural estimation of mutual information 
+between
+features 
+and 
+targets.
 
 
-## Install and build
+## Installation
+### Install from source
+Checkout the repository and navigate to the root directory. Then, 
 
 ```
 $ poetry install
-$ poetry build
 ```
 
-## Run tests
+### Run tests
 After installation you can run the uni tests by doing:
 ```
 $ poetry run pytest
