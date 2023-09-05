@@ -78,7 +78,7 @@ class SelectTest(unittest.TestCase):
         )
 
         expected, train_data, val_data, test_data = SelectTest.synthesize_categorical_data(
-            n, dx, num_relevant, feat_sizes,  train_size, val_size, test_size)
+            n, dx, num_relevant, feat_sizes, train_size, val_size, test_size)
 
         train_dataloader, val_dataloader, test_dataloader = feature_selection.dataloaders(
             train_data=train_data,
