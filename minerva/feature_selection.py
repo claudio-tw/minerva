@@ -171,6 +171,7 @@ def run(
 
     def _run(train_control: TrainControl):
         logs = []
+        previous_segment_path = None
         for segment in range(train_control.number_of_segments):
             print(f'\n----- Segment: {segment}')
             model_path = Path(train_control.data_path) / \
@@ -208,13 +209,13 @@ def run(
         return selector, model_path
 
     print('\n######################################################')
-    print(f'No-regularisation training')
+    print('No-regularisation training')
     print('######################################################\n')
     _, noreg_model_path = _run(noreg_train_control)
 
     select_train_control.first_run_load_path = noreg_model_path
     print('\n######################################################')
-    print(f'Selection training')
+    print('Selection training')
     print('######################################################\n')
     selector, model_path = _run(select_train_control)
     print(f'Selected features:\n{selector.selected_feature_names()}')
