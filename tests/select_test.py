@@ -64,7 +64,6 @@ class SelectTest(unittest.TestCase):
         dimension_of_residual_block = 512
         num_res_layers = 4
         emb_dim = 3
-        reg_coef = 1e5
         batch_size = 750
 
         # Pack hyperparameters
