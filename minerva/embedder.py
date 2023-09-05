@@ -33,7 +33,7 @@ class Embedder(nn.Module):
     def forward(self, x):
         n, d = x.size()
         out = torch.zeros(
-            (n, d,  self.emb_dim),
+            (n, d, self.emb_dim),
             device=x.device
         )
         for f in range(self.n_cat_features):
