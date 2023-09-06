@@ -38,14 +38,13 @@ scaler = 2
 emb_dim = 3
 
 # Batches and epochs
-max_epochs = int(2000*scaler)
 batch_size = scaler*2048
 
 # No-regularisation train control
 noreg_train_control = minerva.feature_selection.TrainControl(
     model_name='noreg_categorical',
     data_path='data/',
-    number_of_epochs=max_epochs,
+    number_of_epochs=4000,
     number_of_segments=1,
     learning_rate=5e-6,
     reg_coef=.0,
@@ -57,7 +56,7 @@ noreg_train_control = minerva.feature_selection.TrainControl(
 select_train_control = minerva.feature_selection.TrainControl(
     model_name='selection_categorical',
     data_path='data/',
-    number_of_epochs=max_epochs,
+    number_of_epochs=4000,
     number_of_segments=2,
     learning_rate=5e-6,
     reg_coef=1e5,
@@ -105,6 +104,7 @@ def synthesize_data(
         y += np.array(x0 > x1, dtype=int)
 
     feature_cols = [f'f{n}' for n in range(dx)]
+    expected_features = list(np.array(feature_cols)[expected])
     targets = [f'y{n}' for n in range(dy)]
     xdf = pd.DataFrame(
         x,
@@ -119,7 +119,7 @@ def synthesize_data(
     val_data = data.iloc[train_size: train_size + val_size]
     test_data = data.iloc[train_size + val_size:]
 
-    return expected, train_data, val_data, test_data
+    return expected_features, train_data, val_data, test_data
 
 
 def main():

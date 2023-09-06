@@ -8,6 +8,9 @@ between
 features 
 and 
 targets.
+A detailed explanation of 
+our feature selection methodology is available in
+the accompanying paper. 
 
 
 ## Installation
@@ -19,16 +22,21 @@ $ poetry install
 ```
 
 ### Run tests
-After installation you can run the uni tests by doing:
+After installation you can run the unit tests by doing:
 ```
 $ poetry run pytest
 ```
 
 ## Run experiments
 
-1. Estimate mutual information between to normal random variables at different level of correlation:
+The repository collects several experiments of feature selection using Minerva. 
+You can find them in the directory `experiments/`. 
+You can use those scripts to reproduce our results. 
+For example, you can:
+
+1. Estimate mutual information between two normal random variables at different level of correlation:
 ```
-$ poetry run python experiments/normalsmile.py
+$ python experiments/normalsmile.py
 ```
 Tensorboard logs will be available at `tb_logs/normalsmile/`
 The same experiment can be run through the notebook `notebooks/normalsmile.ipynb`.
@@ -37,7 +45,14 @@ The same experiment can be run through the notebook `notebooks/normalsmile.ipynb
 
 2. Feature selection in a linear trasnformation setting:
 ```
-$ poetry run python experiments/linear.py
+$ python experiments/linear.py
 ```
 Tensorboard logs will be available at `tb_logs/linear/`
 The same experiment can be run through the notebook `notebooks/linear.ipynb`.
+
+
+
+Moreover,
+the experiments discussed in the paper
+were run using the scripts
+in `experiments/experiment_1`.

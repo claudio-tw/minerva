@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-from minerva import feature_selection
+import minerva
 
 
 pth = Path('./data/linear')
@@ -37,14 +37,13 @@ emb_dim = 1
 
 # Batches and epochs
 batch_size = scaler*2048
-max_epochs = int(1200*scaler)
 
 
 # No-regularisation train control
 noreg_train_control = minerva.feature_selection.TrainControl(
     model_name='noreg_linear',
     data_path='data/',
-    number_of_epochs=max_epochs,
+    number_of_epochs=4000,
     number_of_segments=1,
     learning_rate=5e-6,
     reg_coef=.0,
@@ -56,10 +55,10 @@ noreg_train_control = minerva.feature_selection.TrainControl(
 select_train_control = minerva.feature_selection.TrainControl(
     model_name='selection_linear',
     data_path='data/',
-    number_of_epochs=max_epochs,
-    number_of_segments=1,
-    learning_rate=5e-6,
-    reg_coef=1e5,
+    number_of_epochs=4000,
+    number_of_segments=2,
+    learning_rate=1e-6,
+    reg_coef=1e4,
     projection_init=None,
     disable_projection=False,
 )
@@ -98,6 +97,7 @@ def synthesize_data(
     )[:, :, 0]
     feature_cols = [f'f{n}' for n in range(dx)]
     target_cols = [f'y{n}' for n in range(dy)]
+    expected_features = list(np.array(feature_cols)[expected])
     xdf = pd.DataFrame(
         x,
         columns=feature_cols
@@ -111,7 +111,7 @@ def synthesize_data(
     val_data = data.iloc[train_size: train_size + val_size]
     test_data = data.iloc[train_size + val_size:]
 
-    return expected, train_data, val_data, test_data
+    return expected_features, train_data, val_data, test_data
 
 
 def main():
@@ -129,7 +129,7 @@ def main():
     )
 
     # Run feature selection
-    selected_features, selector = feature_selection.run(
+    selected_features, selector = minerva.feature_selection.run(
         train_data=train_data,
         val_data=val_data,
         test_data=test_data,
@@ -142,6 +142,9 @@ def main():
         select_train_control=select_train_control,
         batch_size=batch_size,
     )
+
+    import pdb
+    pdb.set_trace()
 
     # print results
     print(
